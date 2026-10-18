@@ -11,7 +11,8 @@ function ReadText($p) { if (Test-Path -LiteralPath $p) { [IO.File]::ReadAllText(
 
 $localVer = (ReadText (Join-Path $root 'VERSION')).Trim()
 try {
-  $remoteVer = (Invoke-WebRequest "https://raw.githubusercontent.com/$REPO/main/VERSION?t=$([DateTime]::Now.Ticks)" -UseBasicParsing -Headers @{ 'Cache-Control' = 'no-cache' }).Content
+  # raw.githubusercontent.com 은 5분쯤 캐시되므로 GitHub API로 바로 읽는다(시간당 60번까지)
+  $remoteVer = (Invoke-WebRequest "https://api.github.com/repos/$REPO/contents/VERSION?ref=main" -UseBasicParsing -Headers @{ 'Accept' = 'application/vnd.github.raw'; 'User-Agent' = 'ksl-kit' }).Content
   if ($remoteVer -is [byte[]]) { $remoteVer = [Text.Encoding]::UTF8.GetString($remoteVer) }
   $remoteVer = $remoteVer.Trim()
 } catch { Write-Output "인터넷에서 최신 지침을 확인하지 못했어요: $($_.Exception.Message)"; Write-Output "지금 폴더의 지침($localVer)으로 작업해요."; exit 2 }
