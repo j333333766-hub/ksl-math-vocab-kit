@@ -29,4 +29,4 @@ foreach ($f in $files) {
   [IO.File]::WriteAllText($f.FullName, $new, $u8)
   Write-Output "  새 틀로 바꿈: $($f.Name)"; $changed++
 }
-Write-Output "틀 갈아끼우기 끝($ver): 바꿈 $changed개, 이미 같음 $same개, 건너뜀 $bad개. 바꾼 차시는 점검(#check)으로 다시 확인한다."
+Write-Output "틀 갈아끼우기 끝($ver): 바꿈 $($changed)개, 이미 같음 $($same)개, 건너뜀 $($bad)개. 바꾼 차시는 점검(#check)으로 다시 확인한다."

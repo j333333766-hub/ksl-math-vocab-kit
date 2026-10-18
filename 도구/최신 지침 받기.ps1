@@ -42,7 +42,7 @@ try {
     Copy-Item -LiteralPath $from -Destination $to -Force; $n++
   }
   Copy-Item -LiteralPath (Join-Path $src '.kit_files') -Destination $ol -Force
-  Write-Output "지침을 새로 받았어요: $localVer → $remoteVer (파일 $n개)"
+  Write-Output "지침을 새로 받았어요: $(if ($localVer) { $localVer } else { '처음' }) → $remoteVer (파일 $($n)개)"
   # 3) 바뀐 점: CHANGELOG에서 지금 받은 판부터 전에 쓰던 판 앞까지
   $log = ReadText (Join-Path $root 'CHANGELOG.md')
   $out = @(); $on = $false

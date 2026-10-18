@@ -31,5 +31,5 @@ if (-not $rows.Count) { $md += '(아직 의견이 없어요)' }
 [IO.File]::WriteAllText((Join-Path $root '전체 지침 의견(받은 것).md'), ($md -join "`r`n") + "`r`n", $u8)
 [IO.File]::WriteAllText($seenPath, (($seen.GetEnumerator() | ForEach-Object { "$($_.Key)`t$($_.Value)" }) -join "`r`n"), $u8)
 $c = @($rows | Where-Object { $_.'상태' -eq '확정' }).Count
-Write-Output "전체 지침 의견 $($rows.Count)건(확정 $c건)을 ‘전체 지침 의견(받은 것).md’에 저장했어요."
+Write-Output "전체 지침 의견 $($rows.Count)건(확정 $($c)건)을 ‘전체 지침 의견(받은 것).md’에 저장했어요."
 if ($news.Count) { Write-Output '지난번 뒤로 새로 생기거나 바뀐 의견:'; $news | ForEach-Object { Write-Output $_ } } else { Write-Output '지난번 뒤로 새로 생기거나 바뀐 의견은 없어요.' }
