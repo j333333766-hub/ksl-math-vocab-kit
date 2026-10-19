@@ -25,14 +25,14 @@ function svg(markup,w,h){ return {kind:'svg',svg:markup,w:w||420,h:h||320}; }
 function cut(cap,o){ if(cap&&typeof cap==='object'){ o=cap; cap=null; } o=o||{}; const c={};
   if(o.fig!=null) c.fig=o.fig; if(o.text!=null) c.text=o.text;
   if(cap){ c.caption=cap; c.narr=o.narr||KIT_PRE.plain(cap); }
-  if(o.dir) c.dir=o.dir;
+  if(o.dir) c.dir=o.dir; if(o.at!=null) c.at=o.at;   // at: 영상(video)이 있을 때 이 컷이 시작하는 초
   if(o.b) c.bubbles=o.b.map(x=>({who:x[0],text:x[1]}));
   return c; }
 function card(front,a,b){ let back;
   if(a&&typeof a==='object'){ back={fig:a.fig}; if(a.cap) back.caption=a.cap; } else { back={text:a}; if(b) back.caption=b; }
   return [front,back]; }
 function ch(q,options,answer,o){ o=o||{}; const d={type:'choice',q:q,options:options,answer:Array.isArray(answer)?answer:[answer]};
-  if(o.fig) d.fig=o.fig; if(o.hint) d.hint=o.hint; if(o.memo) d.memo=o.memo; if(o.say) d.say=o.say; if(o.cols) d.cols=o.cols; return d; }
+  if(o.fig) d.fig=o.fig; if(o.hint) d.hint=o.hint; if(o.memo) d.memo=o.memo; if(o.say) d.say=o.say; if(o.cols) d.cols=o.cols; if(o.coin) d.coin=o.coin; return d; }
 function type_words(words,q){ return {type:'listen',mode:'type',q:q||'낱말을 듣고, 보면서 따라 써 보세요.',items:words.map(w=>({text:w,answer:w})),memo:KIT_PRE.MEMO.type}; }
 function handwrite(word,q){ return {type:'ocr',q:q||'낱말을 손글씨로 따라 써 보세요.',word:word,memo:KIT_PRE.MEMO.hand}; }
 function say(sentence,read,q){ return {type:'step_recorde',q:q||'문장을 듣고 따라 말해 보세요.',sentence:sentence,say:read,memo:KIT_PRE.MEMO.say}; }
@@ -42,203 +42,172 @@ function dictation(items,q){ const blank=(t,w)=>t.includes('['+w+']')?t.replace(
 function parse_q(q,items,o){ return Object.assign({type:'parse',q:q,items:items.map(x=>({parts:x[0],ans:x[1],act:x[2],from:x[3]})),memo:KIT_PRE.MEMO.parse},o||{}); }   // [[ [말, 칸 이름], … ], 정답 칸 번호, '할 일', '어디에 나오는 문제']
 function sort_q(q,buckets,items,o){ return Object.assign({type:'sort',q:q,buckets:buckets,items:items.map(x=>({text:x[0],to:x[1],hint:x[2]})),memo:KIT_PRE.MEMO.sort},o||{}); }   // 단추 이름들, [문장, 정답 단추 번호, 도움말]
 function locate_q(q,paper,asks,o){ return Object.assign({type:'locate',q:q,paper:paper,asks:asks.map(x=>({q:x[0],id:x[1],ok:x[2]})),memo:KIT_PRE.MEMO.locate},o||{}); }   // 문제지 [{t:'글 [[이름|누를 말]]', box:, head:, headId:, id:}], [물음, 누를 곳 이름, 맞았을 때의 말]
+// 10/16 협의 흐름(flow: '1016')에서 쓰는 도우미
+function coin(x,...areas){ return Object.assign({},x,{coin:areas}); }   // 활동의 보상 영역(말하기·듣기·읽기·쓰기)을 직접 정할 때
+function book(lines,q,o){ return Object.assign({type:'listen',book:true,q:q||'다음 문장을 듣고 2번 따라 읽어 보세요.',items:lines.map(x=>Array.isArray(x)?{text:x[0],say:x[1]}:{text:x}),memo:'교과서 문제 문장 읽기(10/16 협의: 연습 3·4번째 활동은 교과서 문제처럼 보이게, 목적은 문제를 푸는 힘이 아니라 읽고 이해하는 힘). 문장은 교과서의 꼴을 따라 새로 쓴 것이다. 문제를 풀게 하지 않고, 듣고 소리 내어 읽기만 한다.'},o||{}); }
+function fill(sentence,options,answer,q,o){ return Object.assign({type:'drag_drop',q:q||'보기에서 알맞은 낱말을 골라 빈칸에 넣어 보세요.',sentence:sentence,options:options,answer:answer,memo:'빈칸 채우기. 보기를 준다(10/16 협의: 10분 만에 낱말을 외워 쓰기는 어렵다 — 한국어교육 관점). 낱말을 눌러도 들어가고 끌어 넣어도 된다(끌어 넣기의 휴대폰 리사이징은 업체가 시험 중).'},o||{}); }
 </script>
 <script>
 /*══════════════════════ 차시 내용 시작 ══════════════════════
   이 아래부터 ‘차시 내용 끝’까지가 이 차시의 내용이다. 차시를 만들거나 고칠 때는 이 부분만 고친다.
-  ‘차시 내용 끝’ 아래는 화면 틀이다(고치지 않는다). 칸마다 무엇을 적는지는 폴더의 CLAUDE.md 를 본다.
+  ‘차시 내용 끝’ 아래는 화면 틀이다(고치지 않는다). 칸마다 무엇을 적는지는 폴더의 CLAUDE.md 6절을 본다.
 
   7차시 소인수분해 — 샘플 (조창현)
+  흐름(10/19 확정 플로우, 화면 순서는 틀이 정한다):
+    오늘의 어휘(안내·미리 확인할 말·낱말 듣기) → 뜻 알아보기(낱말마다 생활 속 뜻 영상 → 뜻 카드 → 2번 따라 읽기)
+    → 교과서 맛보기(낱말마다 용례 대화 → 교과서 문제 문장 읽기) → 연습하기 → 정리하기
   고친 기록:
-    2026-10-11 샘플로 정리
+    2026-10-18 10/16 협의 반영 원고로 새로 씀(생활 속 뜻 장면, 용례 대화, 손글씨 1개, 밑·지수 뺌, 교과서 문제 문장은 읽기만)
+    2026-10-19 생활 속 뜻 세 낱말을 영상 시안(mp4)으로, 소수 뜻에 ‘2개뿐’, 소인수분해 뜻 ‘자연수를’
+    2026-10-19 확정 플로우 5단계·업체 SB 화면 틀, 60차시 배분 조정으로 8 → 7차시, 소인수 영상 자막 해요체 — 샘플로 확정
 ══════════════════════════════════════════════════════════════*/
 const LESSON_SPEC = () => ({
+  flow: '1016',   // 화면 흐름(10/19 확정 플로우). 모든 차시가 이 값을 쓴다. 바꾸지 않는다
   // ── 기본 정보 ─────────────────────────────────────────────
-  no: 7,                       // 차시 번호(자료/60차시 목록.md). 차시 이름·성취기준·학년은 목록에서 자동으로 온다
-  author: '조창현', status: '샘플', updated: '2026-10-11',   // 담당 선생님, 상태(작성 중 / 검토 요청 / 검토 완료), 고친 날짜
+  no: 7,
+  author: '조창현', status: '샘플', updated: '2026-10-19',
   unit: '중학교 1학년 · ‘소인수분해’ 소단원을 배우기 전에 보는 콘텐츠',
-  new: ['소인수분해', '소인수', '거듭제곱'],   // 학습 어휘(3개까지). 60차시 목록과 같아야 한다
-  ess: ['소인수분해'],                    // 그 가운데 핵심어휘(★, 충남대 필수 어휘)
-  aux: ['인수', '밑', '지수'],            // 함께 보는 말(학습 어휘는 아니지만 이름만 보여 주는 말)
-  pre: [['소수', 6, '약수가 1과 자기 자신뿐인 수. 예: 2, 3, 5, 7']],   // 미리 확인할 말 [낱말, 익힌 차시, '뜻. 예: …']
-  elem: [],                           // 초등에서 배운 말 [낱말, '초5-1'] — 없으면 비운다
-  colloc: ['~의 소인수', '~을/를 소인수분해하면 ~입니다', '~의 거듭제곱', '소인수들만의 곱으로 나타내다'],   // 함께 쓰이는 말
+  new: ['소인수분해', '소인수', '거듭제곱'],   // 학습 어휘(60차시 목록과 같게)
+  ess: ['소인수분해'],                        // 필수어휘(★)
+  aux: ['인수'],                              // 함께 보는 말(‘소인수’를 조각으로 나눌 때만 나온다)
+  pre: [['소수', 6, '약수가 1과 자기 자신, 2개뿐인 수. 예: 2, 3, 5, 7']],
+  colloc: ['~의 소인수', '~을/를 소인수분해하면 ~입니다', '~의 거듭제곱'],
+  keep: ['분해', '거듭', '제곱'],
+  guide_name: '안내',
 
-  // ── 1. 도입 ──────────────────────────────────────────────
-  intro_q: '학교에서 ‘소인수분해’를 배우기 전에 봐요',
-  intro_note: '앞에서 배운 ‘소수’에서 시작해서 새 낱말을 익혀요. 그러면 학교 수업을 더 쉽게 들을 수 있어요.',
-  school: '소인수분해', school_s: '중학교 1학년 1학기 첫 단원',   // 학교 수업 칸: 소단원 이름(60차시 목록 그대로, 번호 없이), 언제 배우는지
-  school_goal: '이 단원에서는 자연수를 소인수들의 곱으로 나타내요. 오늘 익힐 낱말은 최대공약수, 최소공배수를 배울 때도 계속 나와요.',
-  // ‘잘 몰라요’를 고른 학생만 보는 뜻 확인 화면. 미리 확인할 말마다 하나씩, 보기는 두 개
-  checks: [
-    ch('이런 수를 한국어로 무엇이라고 하나요?', ['소수', '합성수'], 0, {fig: eq('2,  3,  5,  7,  11, …', '약수가 1과 자기 자신뿐인 수', {size: 30}), hint: '6차시에서 익힌 말이에요. 잘 모르겠으면 6차시 ‘소수와 합성수’를 먼저 봐요.'}),
-  ],
+  // ── 1. 오늘의 어휘(앞부분: 안내·미리 확인할 말) ─────────────────────────────────────────────
+  intro_say: '학교에서 ‘소인수분해’를 배우기 전에 오늘 만날 낱말 세 개를 먼저 익혀 봐요.',
+  intro_note: '수학은 이미 알고 있어요. 오늘은 한국어 이름을 알아봐요.',
+  pre_q: '낱말을 클릭해 뜻을 확인해 보세요.',
+  pre_cards: [card('소수', '2, 3, 5, 7', '소수는 약수가 1과 자기 자신, 2개뿐인 수예요.\n(6차시에서 배운 말)')],   // ‘2개뿐’: 1을 소수로 오해하지 않게(1의 약수는 1 하나뿐)
 
-  // ── 2. 어휘 제시 ───────────────────────────────────────────
-  // 낱말을 누르면 뜨는 말: 뜻을 설명하지 않고, 이 낱말을 알면 무엇이 좋은지 말한다
-  cheer: {
-    '소인수분해': '중학교 수학 첫 단원의 이름이에요.\n이 낱말을 알면 첫 수업부터 선생님 말이 잘 들려요!',
-    '소인수': '‘소인수분해’ 안에 들어 있는 낱말이에요.\n이 낱말을 알면 긴 낱말도 쉽게 읽을 수 있어요!',
-    '거듭제곱': '2³처럼 쓴 것, 본 적 있죠? 한국어 이름만 알면 돼요.\n중학교 내내 계속 만나는 낱말이에요!',
-  },
-  // 수업 장면(짧은 영상). 이미 아는 개념이라는 점을 대사로 짚는다.  b: [[인물 번호, 말]]  0 아미르, 1 유나
-  scene: [
-    cut({text: '오늘 배울 내용\n**소인수분해**',
-         b: [[0, '‘**소인수분해**’? 처음 보는 말이야.'], [1, '‘소수’는 알지? 소수와 관계있는 말이야.']],
-         dir: '교실 칠판에 오늘 배울 내용이 적혀 있다. 낱말에 색이 들어온다'}),
-    cut({fig: eq('12 = 2 × 2 × 3'),
-         b: [[0, '아, 이거! 우리 나라 학교에서 배웠어.'], [1, '맞아. 한국어로는 **소인수분해**라고 해.']],
-         dir: '12가 소수들의 곱으로 풀리는 모습'}),
-  ],
-  listen: [['소인수분해', null], ['소인수', null], ['거듭제곱', null], ['인수', null]],   // 소리를 들려줄 낱말 [낱말, 읽는 법]. 읽는 법은 보통 null
-  // 낱말 미리 보기 창에 더할 말(함께 보는 말의 뜻 등)
-  preview: {
-    '인수': {def: '약수를 ‘인수’라고도 해요.', eg: '12의 인수: 1, 2, 3, 4, 6, 12'},
-    '밑': {def: '거듭제곱에서 여러 번 곱하는 수', eg: '2³의 밑: 2', tip: '41차시 ‘지수법칙’에서 더 자세히 배워요.'},
-    '지수': {def: '거듭제곱에서 곱한 횟수를 나타내는 수', eg: '2³의 지수: 3', tip: '41차시 ‘지수법칙’에서 더 자세히 배워요.'},
-    '소수': {sent: '2, 3, 5, 7은 **소수**이다.'},
-  },
+  // ── 1. 오늘의 어휘(끝: 낱말 듣기) ───────────────────────────────────────────
+  today_q: '낱말을 클릭해 소리를 들어 보세요.',
 
-  // ── 3. 정의: 영상(낱말 이야기) + 뜻 카드 ─────────────────────────
-  define_title: '낱말 이야기: 소인수, 소인수분해, 거듭제곱',
-  define_memo: '정의 단계 = 영상 + 리마인드(2026-10-11 회의). 영상은 멈추지 않고 이어서 본다(컷마다 묻지 않는다). 영상이 끝나면 낱말 카드를 눌러 뜻을 한 번 더 떠올리는 것으로 끝낸다. 쓰거나 말하게 하지 않는다. 영상은 낱말 이야기(스토리텔링)다: ① 낱말을 조각으로 가른다 → ② 조각 낱말의 뜻을 생활 장면으로 확인한다 → ③ 조각이 붙어 새 낱말이 된다 → ④ 문장에서 쓰는 모습을 본다. 수학 개념을 새로 가르치지 않는다(푸는 방법·규칙 설명 없음). 밑·지수는 학습 어휘가 아니므로 2³ 그림의 이름표로만 가볍게 보여 준다.',
-  define: [
-    cut('‘소인수’ 안에는 아는 말 ‘소수’와 ‘인수’가 들어 있어요.',
-        {fig: mg({t: 'split', whole: '소인수', parts: ['소수', '인수']}),
-         b: [[0, '‘소인수’? 말이 어려워 보여.'], [1, '쪼개 보면 쉬워. 아는 말 두 개가 붙어 있어!']],
-         dir: '모션그래픽: 낱말 ‘소인수’가 가운데에서 갈라져 ‘소수’와 ‘인수’ 두 조각이 된다'}),
-    cut('‘소수’는 약수가 1과 자기 자신뿐인 수예요. 2, 3, 5, 7이 소수예요.',
-        {fig: mg({t: 'def', word: '소수', text: '약수가 1과 자기 자신뿐인 수'}, {t: 'grid', n: 7, cols: 7, e: '🍬', label: '7 = 1 × 7'}, {t: 'nums', items: ['2', '3', '5', '7', '11']}),
-         b: [[0, '사탕 7개는 똑같이 나누어 담기 어려워. 한 줄로만 놓을 수 있어.'], [1, '맞아. 7 같은 수가 ‘소수’야. 6차시에서 봤지?']],
-         narr: '소수는 약수가 일과 자기 자신뿐인 수예요. 이, 삼, 오, 칠이 소수예요.',
-         dir: '첫 번째 조각 ‘소수’(6차시에서 익힌 말)를 생활 장면으로 떠올린다. 사탕 7개가 한 줄로 놓인다'}),
-    cut('곱해서 12를 만드는 수 1, 2, 3, 4, 6, 12를 12의 ‘약수’ 또는 ‘**인수**’라고 해요.',
-        {fig: mg({t: 'grid', n: 12, cols: 6, e: '🥚', label: '12 = 2 × 6'}, {t: 'nums', label: '12의 **인수**', items: ['1', '2', '3', '4', '6', '12']}),
-         b: [[1, '달걀 12개를 2줄로 놓으면 한 줄에 6개야.']],
-         narr: '곱해서 십이를 만드는 수 일, 이, 삼, 사, 육, 십이를 십이의 약수 또는 인수라고 해요.',
-         dir: '두 번째 조각 ‘인수’. 달걀 12개가 2줄로 놓이고, 그 아래에 12의 인수가 하나씩 나타난다. ‘약수’와 같은 뜻의 다른 이름임을 알린다'}),
-    cut('12의 인수 가운데 소수는 2와 3이에요. 소수인 인수, 줄여서 ‘**소인수**’예요.',
-        {fig: mg({t: 'nums', label: '12의 인수', items: ['1', '**2', '**3', '4', '6', '12']}, {t: 'join', parts: ['소수', '인수'], result: '소인수'}),
-         narr: '십이의 인수 가운데 소수는 이와 삼이에요. 소수인 인수, 줄여서 소인수예요.',
-         dir: '모션그래픽: 12의 인수 가운데 소수 2와 3에 색이 들어오고, ‘소수’와 ‘인수’ 조각이 양쪽에서 날아와 붙어 ‘소인수’가 된다'}),
-    cut('‘~의 소인수’라고 말해요.',
-        {fig: mg({t: 'tx', big: true, text: '2와 3은 12의 **소인수**이다.'}, {t: 'tx', text: '4와 6은 12의 인수이지만 소수가 아니에요.'}),
-         b: [[0, '그럼 2와 3은 12의 소인수구나!'], [1, '응. 4와 6은 소수가 아니니까 소인수가 아니야.']],
-         narr: '무엇의 소인수라고 말해요.',
-         dir: '새 낱말 ‘소인수’를 문장에서 쓰는 모습. 두 인물이 직접 말해 본다'}),
-    cut('‘소인수분해’는 ‘소인수’와 ‘분해’가 붙은 말이에요.',
-        {fig: mg({t: 'split', whole: '소인수분해', parts: ['소인수', '분해']}),
-         b: [[0, '이번에는 ‘소인수분해’네. ‘분해’는 뭐지?'], [1, '‘소인수’에 ‘분해’가 붙은 말이야. 같이 보자!']],
-         dir: '모션그래픽: 낱말 ‘소인수분해’가 갈라져 ‘소인수’와 ‘분해’ 두 조각이 된다'}),
-    cut('‘**분해**’는 하나로 된 것을 작은 조각으로 나누어 놓는 거예요. 생활에서도 많이 써요.',
-        {fig: mg({t: 'pics', items: [{e: '🧱', s: '블록 집을 **분해**해요.'}, {e: '🚲', s: '자전거를 **분해**해서 닦아요.'}, {e: '⌚', s: '시계를 **분해**해서 고쳐요.'}]}),
-         dir: '생활 속의 ‘분해’. 블록 집, 자전거, 시계가 차례로 나오고 각각 부품으로 흩어진다(모션그래픽)'}),
-    cut('수학에서는 수를 곱셈으로 나누어 놓는 것을 ‘분해’라고 해요. 더하기가 아니라 곱하기로 나누어요.',
-        {fig: mg({t: 'flow', a: '🏠', b: '🧱 🧱 🧱', cap: '블록 집을 분해하면 블록이 돼요.'}, {t: 'flow', a: '12', b: '2 × 2 × 3', cap: '12를 분해하면 소인수들의 곱이 돼요. (2 + 2 + 3이 아니에요)'}),
-         dir: '생활의 ‘분해’와 수학의 ‘분해’를 나란히 놓는다. ★ 블록을 ‘더해서’ 집이 되는 것처럼 보여 12 = 2 + 2 + 3으로 오해하지 않게, 수 쪽은 곱셈 기호(×)를 또렷하게 보이고 ‘곱’이라는 말을 강조한다(2026-10-11 회의: 시각 자료 오개념 방지). 나누는 방법은 설명하지 않는다'}),
-    cut('12를 소인수들만의 곱으로 나누어 놓았어요. 이것을 한국어로 ‘**소인수분해**’라고 해요.',
-        {fig: mg({t: 'tree', n: 12, eq: '12 = 2 × 2 × 3'}, {t: 'join', parts: ['소인수', '분해'], result: '소인수분해'}),
-         narr: '십이를 소인수들만의 곱으로 나누어 놓았어요. 이것을 한국어로 소인수분해라고 해요.',
-         dir: '모션그래픽: 이미 풀린 나무 그림이 나오고(푸는 방법은 설명하지 않는다), ‘소인수’와 ‘분해’ 조각이 붙어 ‘소인수분해’가 된다'}),
-    cut('‘~을 소인수분해하면 ~이다’라고 말해요.',
-        {fig: mg({t: 'tx', big: true, text: '12를 **소인수분해하면**'}, {t: 'tx', big: true, text: '12 = 2 × 2 × 3 이다.'}),
-         b: [[0, '아, 이거! 우리 나라 학교에서도 했어.'], [1, '맞아. 한국어로는 ‘소인수분해한다’고 말해.']],
-         narr: '무엇을 소인수분해하면 무엇이다 라고 말해요.',
-         dir: '새 낱말 ‘소인수분해’를 문장에서 쓰는 모습. 학생이 이미 아는 개념임을 대사로 짚는다'}),
-    cut('‘거듭’은 ‘여러 번 다시’라는 뜻이에요. 생활에서도 써요.',
-        {fig: mg({t: 'split', whole: '거듭제곱', parts: ['거듭', '제곱']}, {t: 'pics', items: [{e: '🗣️', s: '**거듭** 말해요.\n(여러 번 말해요)'}, {e: '⚽', s: '**거듭** 연습해요.\n(여러 번 연습해요)'}]}),
-         dir: '모션그래픽: ‘거듭제곱’이 ‘거듭’과 ‘제곱’으로 갈라진다. 생활에서 ‘거듭’을 쓰는 장면 두 가지'}),
-    cut('같은 수를 거듭 곱한 것을 한국어로 ‘**거듭제곱**’이라고 해요. 2³에서 2를 ‘밑’, 3을 ‘지수’라고 해요.',
-        {fig: pw(2, 3, {labels: true, eqs: '2 × 2 × 2 = 2³'}),
-         narr: '같은 수를 거듭 곱한 것을 한국어로 거듭제곱이라고 해요. 이의 세제곱에서 이를 밑, 삼을 지수라고 해요.',
-         dir: '2를 세 번 곱한 식이 2³으로 모이고, 2에 ‘밑’, 3에 ‘지수’ 이름표가 붙는다. 밑·지수는 41차시 ‘지수법칙’에서 다루는 말이라서 여기서는 이름만 알려 준다(함께 보는 말). 나타내는 규칙은 설명하지 않는다'}),
-  ],
-  cards: [
-    card('소인수', '소수인 인수', '12 = 2² × 3  →  12의 소인수는 2와 3'),
-    card('소인수분해', {fig: tree(12, '12 = 2² × 3'), cap: '자연수를 소인수들만의 곱으로 나타내는 것'}),
-    card('거듭제곱', {fig: pw(2, 3, {labels: true, eqs: '2 × 2 × 2 = 2³'}), cap: '같은 수를 여러 번 곱한 것'}),
-  ],
-  // 내 나라 말과 연결(영어·중국어·일본어·베트남어·러시아어·아랍어 순). 확실한 것만 적는다. 모두 원어민 검수 대상
-  lang_words: ['소인수', '소인수분해', '거듭제곱'],
-  lang: [
-    ['prime factor', 'prime factorization', 'power'],
-    ['质因数', '分解质因数', '乘方'],
-    ['素因数', '素因数分解', '累乗'],
-    ['thừa số nguyên tố', 'phân tích ra thừa số nguyên tố', 'lũy thừa'],
-    ['простой множитель', 'разложение на простые множители', 'степень'],
-    ['عامل أولي', 'التحليل إلى العوامل الأولية', 'القوة'],
-  ],
-
-  // ── 4. 용례: 두 인물의 대화 + 잘못 쓴 문장 찾기 ────────────────────
-  // 충남대 자료의 용례(낱말 미리 보기 창의 ‘문장’에도 쓰인다). [문장, 함께 쓰이는 말]
-  usage: [
-    ['6의 약수는 1, 2, 3, 6이고\n이 중에서 2, 3이 소수이므로\n2, 3이 6의 **소인수**입니다.', '‘~의 소인수’라고 써요.'],
-    ['6을 **소인수분해**하면\n6 = 2 × 3입니다.', '‘~을 소인수분해하면 ~입니다’라고 말해요.'],
-    ['2를 2번 곱하면 2의 제곱,\n3번 곱하면 2의 세제곱, …\n등을 2의 **거듭제곱**이라고 합니다.', '‘~의 거듭제곱’이라고 써요.'],
-  ],
-  // 대화: [인물 번호, 대사, {fig: 칠판 그림, use: 용례 낱말}]  — use 가 있는 대사가 용례 말풍선(충남대 용례 문장)
-  talk: {
-    q: '아미르가 수학 발표를 준비해요. 두 친구의 말을 하나씩 들어 보세요.',
-    lines: [
-      [0, '유나야, 내일 수학 시간에 발표해야 해.\n이걸 한국어로 어떻게 말하지?', {fig: eq('6 = 2 × 3')}],
-      [1, '같이 해 보자! 먼저 6의 약수부터 말해 볼래?', {}],
-      [0, '6의 약수는 1, 2, 3, 6이야.', {fig: eq('6의 약수', '1,  2,  3,  6', {size: 30})}],
-      [1, '맞아. 이 중에서 2, 3이 소수이므로\n2, 3이 6의 **소인수**야.', {fig: eq('6의 약수', '1,  **2**,  **3**,  6', '소수: 2, 3', {size: 30})}],
-      [0, '발표할 때는 이렇게 말하면 되겠다!\n“6의 약수는 1, 2, 3, 6이고 이 중에서 2, 3이 소수이므로 2, 3이 6의 **소인수**입니다.”', {use: '소인수'}],
-      [1, '완벽해! 이제 6을 소인수 2와 3의 곱으로 써 봐.', {}],
-      [0, '6 = 2 × 3. 처음에 본 그 식이네!', {fig: eq('6 = **2** × **3**')}],
-      [1, '그걸 한국어로 이렇게 말해.\n“6을 **소인수분해**하면 6 = 2 × 3입니다.”', {use: '소인수분해'}],
-      [0, '아하! 소인수들의 곱으로 쓰는 게 소인수분해구나.\n그럼 8을 소인수분해하면 8 = 2 × 2 × 2야?', {fig: eq('8 = 2 × 2 × 2')}],
-      [1, '응! 그런데 2를 3번이나 곱했지?\n“2를 2번 곱하면 2의 제곱, 3번 곱하면 2의 세제곱, … 등을 2의 **거듭제곱**이라고 합니다.”', {use: '거듭제곱', fig: eq('2 × 2 = 2²', '2 × 2 × 2 = 2³', {size: 30})}],
-      [0, '그럼 8을 소인수분해하면 8 = 2³!\n같은 소인수는 거듭제곱으로 짧게 쓸 수 있구나.', {fig: eq('8 = 2 × 2 × 2', '8 = **2³**', {size: 30})}],
-      [1, '맞아! **소인수**를 찾고, 곱으로 쓰면 **소인수분해**,\n같은 수의 곱은 **거듭제곱**. 세 낱말이 이어져 있어.', {fig: eq('**소인수**', '↓', '**소인수분해**', '↓', '**거듭제곱**', {size: 24})}],
-      [0, '이제 발표할 수 있겠어. 고마워, 유나야!', {}],
-    ],
-  },
-  spots: [
-    {q: '아미르가 발표 연습을 해요. 낱말을 잘못 쓴 문장 2개를 찾아 눌러 보세요.', who: 0, whoSay: '내 발표, 들어 볼래?',
-     items: [
-        {text: '2와 3은 6의 **소인수**입니다.', ok: true},
-        {text: '6을 **거듭제곱**하면 6 = 2 × 3입니다.', ok: false, fix: '6을 **소인수분해**하면 6 = 2 × 3입니다.', why: '소인수들의 곱으로 쓰는 것은 ‘소인수분해’예요.'},
-        {text: '2 × 2 × 2 = 2³처럼 쓴 것을 2의 **거듭제곱**이라고 합니다.', ok: true},
-        {text: '6의 약수 중에서 소수인 2와 3을 6의 **소인수분해**라고 합니다.', ok: false, fix: '6의 약수 중에서 소수인 2와 3을 6의 **소인수**라고 합니다.', why: '약수 가운데 소수인 것은 ‘소인수’예요.'},
+  // ── 낱말마다 한 덩어리: 2. 뜻 알아보기(daily 생활 속 뜻 영상 대본 → card 뜻 카드 → read 2번 따라 읽기) + 3. 교과서 맛보기(talk 용례 대화) ──
+  //    화면에서는 세 낱말의 뜻 알아보기가 먼저 모두 나오고, 그다음 교과서 맛보기에 세 낱말의 대화가 차례로 나온다(순서는 틀이 정한다).
+  // 인물 번호 0 아미르, 1 유나(임시 인물 — 업체가 중학교용 캐릭터로 바꾼다)
+  words: [
+    { w: '소인수',
+      // video: 샘플에만 있는 영상 시안(대표 교사가 만든 mp4). 새 차시는 video 줄 없이 daily 컷 대본만 쓴다(영상은 업체가 만든다). at = 영상에서 그 컷이 시작하는 초
+      video: 'media/3-1_soinsu.mp4',
+      daily: [
+        cut({fig: mg({t: 'split', whole: '소인수', parts: ['소수', '인수']}), at: 0,
+             dir: '모션그래픽(0~8초): 큰 글자 ‘소인수’가 나타나 ‘소’는 파랑, ‘인수’는 분홍으로 물든다 → 아래에 ‘소수’ + ‘인수’ 카드가 올라오고 선으로 이어진다 → ‘소인수 = 소수 + 인수’ 식이 나온다. 자막·내레이션 없음'}),
+        cut({fig: mg({t: 'grid', n: 6, cols: 6, e: '🍬', label: '2개씩 3묶음'}), at: 8,
+             b: [[0, '나한테 사탕 6개가 있어!']],
+             dir: '생활 장면(8~13초): 아미르가 들어와 말한다 → 사탕 6개가 하나씩 나타난다 → 2개씩 세 묶음으로 옮겨 가고 묶음마다 점선 상자와 ‘2개’가 붙는다 → ‘2개씩 3묶음’'}),
+        cut('6은 2 곱하기 3이므로 2, 3은 6의 인수예요.',
+            {fig: eq('6 = **2** × **3**'), at: 13,
+             narr: '육은 이 곱하기 삼이므로 이, 삼은 육의 인수예요.',
+             dir: '모션그래픽(13~18초): 식 ‘6 = 2 × 3’이 나타나고, 2와 3이 분홍으로 바뀌며 위에 ‘인수’ 이름표가 붙는다'}),
+        cut('2, 3은 소수이므로 2, 3은 6의 소인수예요.',
+            {fig: mg({t: 'join', parts: ['소수', '인수'], result: '소인수'}), at: 18,
+             narr: '이, 삼은 소수이므로 이, 삼은 육의 소인수예요.',
+             dir: '모션그래픽(18~24초): 2와 3 아래에 ‘소수’ 이름표가 붙고, 위의 ‘인수’와 만나 ‘소인수’ 이름표로 합쳐진다. 2와 3이 보라로 바뀐다'}),
+      ],
+      card: card('소인수', '6의 소인수: 2, 3', '소인수는 소수인 인수예요.'),
+      talk: {lines: [
+        [0, '교과서에 이런 문장이 있어.', {fig: eq('6 = **2** × **3**', '2, 3은 6의 소인수', {size: 30})}],
+        [1, '“2와 3은 6의 **소인수**입니다.”\n이렇게 읽어.', {use: '소인수', say: '이와 삼은 육의 소인수입니다. 이렇게 읽어.'}],
+        [0, '6을 만드는 소수 2와 3이 6의 소인수구나!', {say: '육을 만드는 소수 이와 삼이 육의 소인수구나!'}],
       ]},
+      read: ['소인수', ['2와 3은 6의 **소인수**입니다.', '이와 삼은 육의 소인수입니다.']],
+    },
+    { w: '소인수분해',
+      // video: 샘플에만 있는 영상 시안(대표 교사가 만든 mp4). 새 차시는 video 줄 없이 daily 컷 대본만 쓴다(영상은 업체가 만든다). at = 영상에서 그 컷이 시작하는 초
+      video: 'media/3-2_soinsubunhae.mp4',
+      daily: [
+        cut({fig: mg({t: 'split', whole: '소인수분해', parts: ['소인수', '분해']}), at: 0,
+             dir: '모션그래픽(0~7초): 큰 글자 ‘소인수분해’가 나타나 ‘소인수’는 보라, ‘분해’는 주황으로 물든다 → 아래에 ‘소인수’ + ‘분해’ 카드가 올라오고 선으로 이어진다 → ‘소인수분해 = 소인수 + 분해’ 식이 나온다. 자막·내레이션 없음'}),
+        cut('블록을 분해해요.',
+            {fig: mg({t: 'pics', items: [{e: '🧱', s: '블록을 **분해**해요.'}]}), at: 7,
+             dir: '생활 속 ‘분해’ ①(7~11초): 위에 ‘생활 속 ‘분해’’가 뜬다. 첫 번째 칸에 2줄 3층으로 쌓인 블록이 나타났다가 하나씩 흩어진다. 칸 아래에 ‘블록을 분해해요.’'}),
+        cut('컴퓨터를 분해해요.',
+            {fig: mg({t: 'pics', items: [{e: '🖥️', s: '컴퓨터를 **분해**해요.'}]}), at: 11,
+             dir: '생활 속 ‘분해’ ②(11~14.5초): 두 번째 칸에 컴퓨터가 나타났다가 키보드·마우스·나사·저장 장치 같은 부품으로 흩어진다'}),
+        cut('시계를 분해해요.',
+            {fig: mg({t: 'pics', items: [{e: '⏰', s: '시계를 **분해**해요.'}]}), at: 14.5,
+             dir: '생활 속 ‘분해’ ③(14.5~17.5초): 세 번째 칸에 시계가 나타났다가 톱니바퀴·나사·건전지로 흩어진다(톱니바퀴는 돌며 흩어진다)'}),
+        cut('‘분해’는 하나를 여러 조각으로 나누는 거예요.',
+            {fig: mg({t: 'pics', items: [{e: '🧱', s: '블록을 **분해**해요.'}, {e: '🖥️', s: '컴퓨터를 **분해**해요.'}, {e: '⏰', s: '시계를 **분해**해요.'}]}), at: 17.5,
+             dir: '세 칸이 나란히 남고, 칸 아래 문장의 ‘분해’가 차례로 한 번씩 커졌다 돌아온다(17.5~20초)'}),
+        cut('자연수를 소인수의 곱으로 분해해요.',
+            {fig: mg({t: 'flow', a: '6', b: '2 × 3'}), at: 20,
+             narr: '자연수를 소인수의 곱으로 분해해요.',
+             dir: '수의 ‘분해’(20~26.5초): ‘6’ 블록이 흔들리다 ‘2’와 ‘3’ 두 블록으로 갈라지고 사이에 ×가 나온다(블록을 분해할 때와 같은 느낌). 2와 3 위에 ‘소인수’ 이름표 → 아래에 식 ‘6 = 2 × 3’. ★ 2 + 3으로 오해하지 않게 ×를 또렷하게'}),
+        cut('이것을 ‘소인수분해’라고 해요.',
+            {fig: mg({t: 'tx', big: true, text: '6 = 2 × 3'}, {t: 'join', parts: ['소인수', '분해'], result: '소인수분해'}), at: 26.5,
+             narr: '이것을 소인수분해라고 해요.',
+             dir: '모션그래픽(26.5~31초): 식이 왼쪽으로 비키고 오른쪽에 ‘소인수분해’(소인수 보라 + 분해 주황)가 크게 나타난다'}),
+      ],
+      card: card('소인수분해', {fig: eq('6 = 2 × 3'), cap: '소인수분해는 자연수를 소인수의 곱으로 나타내는 거예요.'}),
+      talk: {lines: [
+        [0, '교과서에 ‘소인수분해’가 나왔어.', {fig: eq('6 = 2 × 3')}],
+        [1, '“6을 **소인수분해**하면\n6 = 2 × 3입니다.”', {use: '소인수분해', say: '육을 소인수분해하면 육은 이 곱하기 삼입니다.'}],
+        [0, '블록을 분해하듯이 6을 소인수로 나눈 거구나!', {say: '블록을 분해하듯이 육을 소인수로 나눈 거구나!'}],
+      ]},
+      read: ['소인수분해', ['6을 **소인수분해**하면 6 = 2 × 3입니다.', '육을 소인수분해하면 육은 이 곱하기 삼입니다.']],
+    },
+    { w: '거듭제곱',
+      // video: 샘플에만 있는 영상 시안(대표 교사가 만든 mp4). 새 차시는 video 줄 없이 daily 컷 대본만 쓴다(영상은 업체가 만든다). at = 영상에서 그 컷이 시작하는 초
+      video: 'media/3-3_geodeupjegop.mp4',
+      daily: [
+        cut({fig: mg({t: 'split', whole: '거듭제곱', parts: ['거듭', '제곱']}), at: 0,
+             dir: '모션그래픽(0~7초): 큰 글자 ‘거듭제곱’이 나타나 ‘거듭’은 청록, ‘제곱’은 파랑으로 물든다 → 아래에 ‘거듭’ + ‘제곱’ 카드가 올라오고 선으로 이어진다 → ‘거듭제곱 = 거듭 + 제곱’ 식이 나온다. 자막·내레이션 없음'}),
+        cut('거듭 연습해요.',
+            {fig: mg({t: 'pics', items: [{e: '⚽', s: '**거듭** 연습해요.'}]}), at: 7,
+             dir: '생활 속 ‘거듭’ ①(7~11초): 위에 ‘생활 속 ‘거듭’’이 뜬다. 첫 번째 칸에서 공을 골대로 세 번 찬다. 칸 위의 이름표가 1번 → 2번 → 3번으로 바뀐다'}),
+        cut('거듭 말해요.',
+            {fig: mg({t: 'pics', items: [{e: '🗣️', s: '**거듭** 말해요.'}]}), at: 11,
+             dir: '생활 속 ‘거듭’ ②(11~14.5초): 두 번째 칸에 말하는 사람과 ‘한 번 더!’ 말풍선이 하나씩 세 번 나타난다'}),
+        cut('종이를 거듭 접어요.',
+            {fig: mg({t: 'pics', items: [{e: '📄', s: '종이를 **거듭** 접어요.'}]}), at: 14.5,
+             dir: '생활 속 ‘거듭’ ③(14.5~17.5초): 세 번째 칸에서 종이가 반으로 세 번 접힌다(가로 → 세로 → 가로). 이름표 1번 → 2번 → 3번'}),
+        cut('‘거듭’은 여러 번 다시 하는 거예요.',
+            {fig: mg({t: 'pics', items: [{e: '⚽', s: '**거듭** 연습해요.'}, {e: '🗣️', s: '**거듭** 말해요.'}, {e: '📄', s: '종이를 **거듭** 접어요.'}]}), at: 17.5,
+             dir: '세 칸이 나란히 남고, 칸 아래 문장의 ‘거듭’이 차례로 한 번씩 커졌다 돌아온다(17.5~20초)'}),
+        cut('2를 거듭 곱했어요.',
+            {fig: mg({t: 'tx', big: true, text: '2 × 2 × 2'}), at: 20,
+             narr: '이를 거듭 곱했어요.',
+             dir: '수의 ‘거듭’(20~26초): ‘2’ 블록이 1초마다 하나씩 늘어나며 ×로 이어진다. 블록 위에 1번 → 2번 → 3번 이름표(생활 장면과 같은 모양) → 아래에 식 ‘2 × 2 × 2 = 2³’'}),
+        cut('같은 수를 거듭 곱한 것을 ‘거듭제곱’이라고 해요.',
+            {fig: mg({t: 'tx', big: true, text: '2 × 2 × 2 = 2³'}, {t: 'join', parts: ['거듭', '제곱'], result: '거듭제곱'}), at: 26,
+             narr: '같은 수를 거듭 곱한 것을 거듭제곱이라고 해요.',
+             dir: '모션그래픽(26~31초): 식이 왼쪽으로 비키고 오른쪽에 ‘거듭제곱’(거듭 청록 + 제곱 파랑)이 크게 나타난다. 2³의 각 부분 이름(밑·지수)과 쓰는 규칙은 다루지 않는다(10/18 결정)'}),
+      ],
+      card: card('거듭제곱', {fig: pw(2, 3, {labels: false, eqs: '2 × 2 × 2 = 2³'}), cap: '거듭제곱은 같은 수를 여러 번 곱한 거예요.'}),
+      talk: {lines: [
+        [0, '교과서에 2 × 2 × 2를 짧게 쓴 식이 있어.', {fig: eq('2 × 2 × 2 = 2³'), say: '교과서에 이 곱하기 이 곱하기 이를 짧게 쓴 식이 있어.'}],
+        [1, '“2³은 2의 **거듭제곱**입니다.”', {use: '거듭제곱', say: '이의 세제곱은 이의 거듭제곱입니다.'}],
+        [0, '2를 거듭 곱했으니까 거듭제곱이구나!', {say: '이를 거듭 곱했으니까 거듭제곱이구나!'}],
+      ]},
+      read: ['거듭제곱', ['2³은 2의 **거듭제곱**입니다.', '이의 세제곱은 이의 거듭제곱입니다.']],
+    },
   ],
 
-  // ── 5. 연습: 고르기 → 듣고 쓰기 → 손글씨 → 말하기 → 받아쓰기 ──────────────
+  // ── 4. 연습하기(활동 10개까지, 활동마다 보상 영역이 붙는다. book(교과서 문장 읽기)은 3. 교과서 맛보기로 옮겨 보인다) ──────────
   practice: [
-    ch('이렇게 나타내는 것을 무엇이라고 할까요?', ['소인수', '소인수분해', '거듭제곱'], 1, {fig: tree(12, '12 = 2 × 2 × 3'), hint: '자연수를 소인수들만의 곱으로 나타냈어요.'}),
-    ch('색이 들어간 수 2와 3을 12의 무엇이라고 할까요?', ['소인수', '소인수분해', '거듭제곱'], 0, {fig: eq('12 = **2** × **2** × **3**'), hint: '‘소수인 인수’를 줄인 말이에요.'}),
-    ch('2³처럼 나타낸 것을 무엇이라고 할까요?', ['소인수', '소인수분해', '거듭제곱'], 2, {fig: pw(2, 3, {labels: false, eqs: '2 × 2 × 2 = 2³'}), hint: '같은 수를 여러 번 곱한 것이에요.'}),
-    type_words(['소인수', '소인수분해', '거듭제곱']),
-    handwrite('소인수'),
-    handwrite('소인수분해'),
-    handwrite('거듭제곱'),
-    say('2와 3은 6의 **소인수**입니다.', '이와 삼은 육의 소인수입니다.'),
-    say('6을 **소인수분해**하면 6 = 2 × 3입니다.', '육을 소인수분해하면 육은 이 곱하기 삼입니다.'),
-    say('2 × 2 × 2는 2의 **거듭제곱**입니다.', '이 곱하기 이 곱하기 이는 이의 거듭제곱입니다.'),
-    dictation([
-      ['18의 소인수는 2와 3입니다.', '십팔의 소인수는 이와 삼입니다.', '소인수'],
-      ['18을 소인수분해하면 2 × 3²입니다.', '십팔을 소인수분해하면 이 곱하기 삼의 제곱입니다.', '소인수분해'],
-      ['2 × 2 × 2를 거듭제곱으로 나타내면 2³입니다.', '이 곱하기 이 곱하기 이를 거듭제곱으로 나타내면 이의 세제곱입니다.', '거듭제곱']]),
+    ch('다음 그림에 알맞은 낱말을 선택해 보세요.', ['소인수', '소인수분해', '거듭제곱'], 0, {fig: eq('6 = **2** × **3**', '빨간 수는 6의 ?', {size: 32}), hint: '소수인 인수예요.'}),
+    ch('다음 그림에 알맞은 낱말을 선택해 보세요.', ['소인수', '소인수분해', '거듭제곱'], 1, {fig: eq('6 = 2 × 3', '6을 이렇게 나타내기', {size: 32}), hint: '수를 소인수의 곱으로 나타냈어요.'}),
+    ch('다음 그림에 알맞은 낱말을 선택해 보세요.', ['소인수', '소인수분해', '거듭제곱'], 2, {fig: pw(2, 3, {labels: false, eqs: '2 × 2 × 2 = 2³'}), hint: '같은 수를 여러 번 곱했어요.'}),
+    ch('다음을 듣고 알맞은 낱말을 선택해 보세요.', ['소인수', '소인수분해', '거듭제곱'], 2, {say: '이 곱하기 이 곱하기 이는 이의 거듭제곱입니다.'}),
+    book([['12를 **소인수분해**하시오.', '십이를 소인수분해하시오.'],
+          ['18의 **소인수**를 모두 구하시오.', '십팔의 소인수를 모두 구하시오.'],
+          ['2 × 2 × 2를 **거듭제곱**으로 나타내시오.', '이 곱하기 이 곱하기 이를 거듭제곱으로 나타내시오.']]),
+    fill('2와 3은 6의 {0}입니다.\n6을 {1}하면 6 = 2 × 3입니다.\n2³은 2의 {2}입니다.', ['거듭제곱', '소인수분해', '소인수'], [2, 1, 0]),
+    handwrite('소인수분해', '연필을 클릭해 낱말을 써 보세요.'),
+    say('6을 **소인수분해**하면 6 = 2 × 3입니다.', '육을 소인수분해하면 육은 이 곱하기 삼입니다.', '다음을 듣고 따라 말해 보세요.'),
   ],
 
-  // ── 6. 마무리 ─────────────────────────────────────────────
+  // ── 5. 정리하기 ─────────────────────────────────────────────
   summary: [
-    ['소인수', '12의 소인수: 2, 3', '소수인 인수'],
-    ['소인수분해', '12 = 2² × 3', '자연수를 소인수들만의 곱으로 나타내는 것'],
+    ['소인수', '6의 소인수: 2, 3', '소수인 인수'],
+    ['소인수분해', '6 = 2 × 3', '자연수를 소인수의 곱으로 나타내는 것'],
     ['거듭제곱', '2 × 2 × 2 = 2³', '같은 수를 여러 번 곱한 것'],
   ],   // [낱말, 예, 뜻]
-  story_cut: {'소인수': 0, '소인수분해': 5, '거듭제곱': 10},   // ‘다시 볼래요’를 누르면 돌아갈 정의 영상의 컷(0부터)
-  outro_note: '수업에서 ‘소인수’, ‘소인수분해’, ‘거듭제곱’이라는 말이 나오면 오늘 익힌 것을 떠올려요.',
-  finish: {label: '학습 끝내기 🎉', icon: '🏆', title: '오늘의 낱말, 모두 익혔어요!',
-    msg: [
-      '이제 학교에서 **‘소인수분해’** 단원을 배울 준비가 됐어요.',
-      '선생님이 이 낱말들을 말하면 바로 알아들을 수 있어요.',
-      '수학은 이미 알고 있었어요. 이제 **한국어로도** 할 수 있어요!',
-    ]},
-
-  chat_url: 'https://script.google.com/macros/s/AKfycbwB6R5cWqCF7lY8wBxwsEtu45AKvTrceFa9mjPvFSCPKfHWmh8NpN10yzFiXTdPrbiL/exec',   // 질문하기 챗봇(샘플에만 연결. 새 차시에서는 이 줄을 지운다)
+  outro_say: '오늘 낱말 세 개를 모두 만났어요. 수업에서 이 낱말을 들으면 오늘을 떠올려 봐요.',
+  outro_note: '수학은 이미 알고 있었어요. 이제 한국어로도 알아요!',
 });
 /*══════════════════════ 차시 내용 끝 ══════════════════════*/
 </script>
@@ -343,7 +312,8 @@ input.ans{font:inherit;font-size:1.3em;font-weight:800;width:5em;text-align:cent
 input.ans.wide{width:6em}
 .say.col{flex-direction:column;align-items:stretch;text-align:center}.say.col .btnrow{justify-content:center;gap:1em}
 canvas.wr{border:.14em solid #111;border-radius:.8em;background:#fffdf2;touch-action:none;width:70%;height:55%}
-.ghostword{position:absolute;font-size:5em;font-weight:800;color:#0001;pointer-events:none}
+.ghostword{position:absolute;font-size:min(5em,calc(30em / var(--n,1)));font-weight:800;color:#0001;pointer-events:none;white-space:nowrap}
+.stage.port .ghostword{font-size:min(5em,calc(19em / var(--n,1)))}
 /* 낱말 이야기 모션그래픽 */
 .mg{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75em;padding:.5em .7em;overflow:hidden}
 .board.withbub .mg{padding-top:3.4em}
@@ -411,6 +381,14 @@ canvas.wr{border:.14em solid #111;border-radius:.8em;background:#fffdf2;touch-ac
 .lgp .opt:disabled{color:inherit;opacity:1}.lgp .opt.m0{background:#ffd9e4}.lgp .opt.m1{background:#d6e8ff}.lgp .opt.m2{background:#d5f5e1}.lgp .opt.m3{background:#ffe9a6}
 .stage.port .lgp{width:100%;gap:5%}.stage.port .lgp .opt{font-size:.85em;padding:.4em .3em}
 .ck .go .lnk{border:0;background:none;font:inherit;font-weight:800;color:#1e4fb3;text-decoration:underline;cursor:pointer;padding:0}
+.vod.vv{background:#111}.vod .vvid{flex:1;min-height:0;width:100%;background:#000;object-fit:contain;display:block}
+.ctrl.vch{justify-content:center;flex-wrap:wrap}.ctrl.vch button{white-space:nowrap}
+.stage.vvon .count{display:none}
+.vod .vinfo{display:none}
+.stage.port .vod.vv .vvid{flex:none;height:auto;aspect-ratio:16/9}
+.stage.port .vod.vv .vinfo{display:block;flex:1;min-height:0;overflow:auto;background:#fff;color:#1d2433;padding:.8em 1em;font-size:.95em;line-height:1.5}
+.vod .vinfo b{display:inline-block;background:#1d2433;color:#fff;border-radius:.4em;padding:0 .5em;font-size:.85em;margin-bottom:.3em}.vod .vinfo .vc{font-weight:800}.vod .vinfo .vs{color:#5b6b8c}
+.stage.port .vod.vv .tag{position:static;align-self:flex-end;margin:.3em .5em}.ctrl.vch button.on{background:#f5b400}
 .ctrl{display:flex;align-items:center;gap:.6em;background:#1118;color:#fff;padding:.3em 1em;font-size:.8em}
 .ctrl button{border:0;background:#fff;border-radius:.4em;padding:.1em .7em;font-weight:800}
 .ctrl .bar{flex:1;display:flex;gap:.25em}.ctrl .bar i{flex:1;height:.4em;background:#fff5;border-radius:9px}.ctrl .bar i.on{background:#fff}
@@ -629,6 +607,24 @@ canvas.wr{border:.14em solid #111;border-radius:.8em;background:#fffdf2;touch-ac
 .lcn{font-size:.8em;font-weight:800;color:#5b6b8c}
 .stage.port .so .row{flex-direction:column;align-items:stretch}.stage.port .so .bs{justify-content:flex-end;flex-wrap:wrap}
 .stage.port .lc{flex-direction:column}.stage.port .lcp{flex:none;font-size:.82em}
+/* ── 10/16 협의 반영: 보상 표시, 안내 캐릭터, 교과서 문장, 검토 의견 ── */
+.coin{position:absolute;right:1.6%;top:1.6%;z-index:5;background:#fff7d6;border:.1em solid #c79a00;color:#6b4e00;border-radius:99px;padding:.05em .6em;font-size:.62em;font-weight:900;white-space:nowrap}
+.stage.isvod .coin{display:none}
+.gdw{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7em;width:100%;flex:1}
+.gdrow{display:flex;align-items:center;gap:.8em;width:92%}
+.gdav{flex:none;width:4.2em;height:4.2em;border-radius:50%;background:#e6f8ec;border:.12em solid #111;display:flex;align-items:center;justify-content:center;font-size:1.5em;flex-direction:column;line-height:1}
+.gdav small{font-size:.3em;font-weight:800;margin-top:.2em;color:#0a6b3d}
+.gdb{flex:1;background:#fff;border:.13em solid #111;border-radius:1em;padding:.6em .9em;font-weight:800;font-size:1.08em;line-height:1.45;position:relative}
+.gdb .qsp{margin-left:.4em}
+.gdchips{display:flex;gap:.5em;flex-wrap:wrap;justify-content:center}
+.gdchips div{background:#fff;border:.13em solid #111;border-radius:.7em;padding:.25em .8em;font-weight:900;font-size:1.25em}
+.gdchips div.core{background:#fff1b8}
+.gdnote{font-size:.82em;color:#374151;font-weight:700;text-align:center}
+.ckguide{display:flex;align-items:center;gap:.5em;width:94%;font-size:.84em;font-weight:800}.ckguide .gdav{width:2.6em;height:2.6em;font-size:1em}.ckguide .gdav small{display:none}
+.say.book{background:#fffdf3;border-color:#8a6d1c;font-weight:700}
+.booklab{align-self:flex-start;margin-left:4%;font-size:.72em;font-weight:900;color:#fff;background:#8a6d1c;border-radius:.4em;padding:.05em .6em}
+.say .star{color:#d08b00;margin-right:.2em}
+.say.core{background:#fff8d9}
 .cmtp{width:320px;flex:none;align-self:stretch;display:none;flex-direction:column;background:#fff;border:1px solid #cfd6e4;border-radius:12px;overflow:auto;padding:12px 14px 12px;font-size:13.5px;line-height:1.5;color:#1d2433;box-shadow:0 2px 10px rgba(0,0,0,.08)}
 .cmtp.on{display:flex}
 .cmtp:not(.ask)>*{flex:none}
@@ -683,6 +679,64 @@ canvas.wr{border:.14em solid #111;border-radius:.8em;background:#fffdf2;touch-ac
 @media(max-width:900px){body.cmton .wrap{flex-direction:column;align-items:center;justify-content:flex-start;padding-bottom:6px}.cmtp{width:100%;height:46dvh;align-self:stretch}}
 @media(min-width:901px){body.cmton #chatBtn{right:360px}}
 .top .cmtb{background:#1e56b8!important;color:#fff!important;border-color:#1e56b8!important}
+.memo .voice{margin:0;padding-left:0;list-style:none}.memo .voice li{margin:2px 0}.memo .voice b{display:inline-block;min-width:4.5em;font-size:11.5px;border-radius:6px;padding:0 5px;margin-right:4px;text-align:center}
+.memo .v1{background:#e6f8ec;color:#0a6b3d}.memo .v2{background:#e8efff;color:#1e56b8}.memo .v3{background:#f3e8ff;color:#6b21a8}
+.memo .newdir{color:#b45309;font-weight:800}
+.stage.port .gdrow{width:100%}.stage.port .gdav{width:3.2em;height:3.2em}
+
+/* ── 업체 SB 화면 틀(2026-10-19, [SB]수학_어휘_공통_15차시 v3.6 3·4쪽과 2025 상호작용 모음의 실제 화면을 따름) ──
+   위: 왼쪽 둥근 단추 셋(설정·다국어·지시문 다시 듣기), 오른쪽 보상 막대(코인 + 말하기·읽기·듣기·쓰기)
+   가운데: 파란 지시문 띠 → 청록 다국어 띠(지시문 번역) → 흰 카드(활동), 카드 안 오른쪽 아래 ↵ 확인
+   양옆: 이전·다음 페이지 / 아래: 왼쪽 내 위치 페이지/전체 페이지, 가운데 페이지 이동 점, 오른쪽 전체 화면
+   영상 화면: 영상 위에 같은 위 막대, 아래 재생바(재생·멈춤·진행·시간·빠르기·소리) + 컷 이동 점 */
+.stage.sb .tools{left:1.6%;top:2.2%;z-index:6;gap:.45em}
+.stage.sb .tools button{width:2.5em;height:2.5em;font-size:.82em;background:#f58a1f;box-shadow:0 .15em 0 #0004;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.stage.sb .tools button.off{background:#9aa3b2}
+.rwd{position:absolute;right:1.6%;top:2.2%;z-index:6;display:flex;align-items:stretch;background:#fff;border:.12em solid #111;border-radius:99px;font-size:.62em;font-weight:900;box-shadow:0 .15em 0 #0003;overflow:hidden;cursor:default}
+.rwd .cn{display:flex;align-items:center;gap:.35em;background:#e8352b;color:#fff;padding:.2em .9em .2em .25em;font-size:1.15em}
+.rwd .cn i{font-style:normal;background:#ffc93c;border:.1em solid #b07b00;border-radius:50%;width:1.55em;height:1.55em;display:flex;align-items:center;justify-content:center;color:#a86400;font-size:.9em}
+.rwd .ar{display:grid;grid-template-columns:repeat(2,auto);gap:0 .8em;padding:.1em .9em;line-height:1.3;align-content:center}
+.rwd .ar span{opacity:.4;white-space:nowrap}.rwd .ar span.on{opacity:1;color:#c2410c}
+.rwd.pop{animation:rwdpop .7s}
+@keyframes rwdpop{35%{transform:scale(1.18)}}
+.sbbars{position:absolute;left:9%;right:9%;top:12.5%;z-index:4;display:flex;flex-direction:column;gap:.25em}
+.stage.sb .sbq{min-height:2.2em;display:flex;align-items:center;justify-content:center;background:#3b82e8;color:#fff;border:.15em solid #111;border-radius:1em;font-weight:800;font-size:1.02em;padding:.2em 1em;text-align:center;line-height:1.2;box-shadow:inset 0 -.25em 0 #0002}
+.stage.sb .mlbar{min-height:1.85em;display:flex;align-items:center;justify-content:center;background:#36ad9f;color:#fff;border:.15em solid #111;border-radius:1em;font-weight:700;font-size:.9em;padding:.15em 1em;text-align:center;line-height:1.2}
+.stage.sb .mlbar.ph{color:#dffcf7;font-weight:600}
+.stage.sb .pad{bottom:8.5%;border-bottom:.16em solid #111;border-radius:1.2em}
+.stage.sb .pad:before,.stage.sb .pad:after{display:none}   /* SB 4쪽(2026 틀)의 카드는 고리 없는 흰 카드 */
+.stage.sb .pad.full{top:12.5%}
+.stage.sb .pad.sbq2{font-size:.9em;gap:.45em;padding-top:.7em;padding-bottom:.4em}   /* 띠 두 줄만큼 카드가 낮아져 글자를 조금 줄인다 */
+.stage.sb .count{left:1.6%;bottom:2%}
+.sbdots{position:absolute;left:50%;transform:translateX(-50%);bottom:2.4%;display:flex;gap:.4em;z-index:5}
+.sbdots button{width:.95em;height:.95em;border-radius:50%;border:.12em solid #111;background:#fff;padding:0;cursor:pointer}
+.sbdots button.on{background:#f58a1f}
+.sbfull{position:absolute;right:1.6%;bottom:1.8%;width:2.1em;height:2.1em;border:.12em solid #111;border-radius:.4em;background:#fff;font-size:.85em;cursor:pointer;z-index:7;padding:0;line-height:1}
+.stage.sb .type{display:none}.stage.sb.memoon .type{display:block;right:auto;left:7.5%;bottom:2.2%}
+.sbchk{position:absolute;right:1.2em;bottom:.7em;display:flex;gap:.45em;align-items:center;z-index:3}
+.sbchk .ok{width:2.3em;height:2.3em;border-radius:50%;border:.14em solid #111;background:#2d8ae6;color:#fff;font-size:1em;font-weight:900;cursor:pointer;box-shadow:0 .18em 0 #0004;padding:0}
+.sbchk .re{border:.1em solid #b6bfcc;background:#fff;border-radius:.6em;font-size:.68em;padding:.15em .55em;cursor:pointer;color:#5b6b8c}
+.fb .fbav{margin-right:.35em}
+.sbpop{position:absolute;z-index:30;left:1.6%;top:12%;background:#fff;border:.12em solid #111;border-radius:.8em;padding:.6em .9em;font-size:.72em;box-shadow:0 .3em 1em #0003;display:flex;flex-direction:column;gap:.4em;min-width:15em}
+.sbpop b{font-size:1.05em}.sbpop label{display:flex;gap:.4em;align-items:center;cursor:pointer}.sbpop small{color:#5b6b8c;line-height:1.4}
+.stage.sb .tag{top:12.5%}
+.stage.sb .vod.vv .tag{display:none}
+.vbar{display:flex;align-items:center;gap:.6em;background:#2a2f3a;color:#fff;padding:.35em 3.9em 1.05em 1em;font-size:.72em;position:relative;flex:none}
+.vbar button{background:none;border:0;color:#fff;font-size:1.15em;cursor:pointer;padding:0 .15em;line-height:1}
+.vbar input[type=range]{flex:1;min-width:3em;accent-color:#3ba9ff}
+.vbar .tm{font-variant-numeric:tabular-nums;white-space:nowrap}.vbar .tm b{color:#4fc3ff;font-weight:700}
+.vbar select{background:#2a2f3a;color:#fff;border:.1em solid #8892a6;border-radius:.3em;font:inherit;padding:0 .2em}
+.vbar .vcnt{background:#fff;color:#111;border-radius:.4em;padding:0 .5em;font-weight:800;white-space:nowrap}
+.vbar .sw{border:.1em solid #8892a6;border-radius:.4em;font-size:.85em;padding:.1em .5em;white-space:nowrap}
+.vbar .vdots{position:absolute;left:50%;transform:translateX(-50%);bottom:.15em;display:flex;gap:.4em}
+.vbar .vdots button{width:.8em;height:.8em;border-radius:50%;background:#fff;border:.1em solid #111;padding:0;font-size:1em}.vbar .vdots button.on{background:#f58a1f}
+.stage.sb.port .sbbars{left:3%;right:3%;top:3.4em}
+.stage.sb.port .pad.full{top:3.4em}
+.stage.sb.port .pad{bottom:5.7em}
+.stage.sb.port .sbdots{bottom:4.15em}
+.stage.sb.port .vod{top:3.4em;bottom:4.4em}
+.stage.sb.port.isvod .nav{top:auto;bottom:.6%;height:2.2em;font-size:1.7em}.stage.sb.port.isvod .nav.prev{left:27%}.stage.sb.port.isvod .nav.next{right:27%}
+.stage.sb.port .vbar{padding-right:2.6em;flex-wrap:wrap;row-gap:.3em}
 </style>
 </head>
 <body>
@@ -692,7 +746,7 @@ canvas.wr{border:.14em solid #111;border-radius:.8em;background:#fffdf2;touch-ac
     <h1 id="lessonTitle" class="notranslate"></h1>
     <div class="meta" id="lessonMeta"></div>
     <div class="toc" id="toc"></div>
-    <div class="note notranslate">이 화면은 제작팀 전달용 <b>시안</b>입니다.<br>· 영상 자리는 장면을 한 컷씩 넘겨 보는 <b>영상 대본</b>으로 대신했습니다.<br>· 인물은 임시 그림입니다. 실제 캐릭터로 바꿉니다.<br>· 말하기 녹음, 손글씨 인식, 점수는 화면만 있고 채점하지 않습니다.<br>· 오른쪽 위 <b>제작 메모</b>를 켜면 화면마다 원본 유형과 메모가 보입니다.<br>· 위쪽 <b>🌐</b> 칸에서 언어를 고르면 지시문, 대사, 자막, 도움말이 그 언어로 바뀝니다(인터넷 필요, 기계 번역). 오늘의 낱말과 한국어로 푸는 문장·보기는 한국어로 남습니다. <b>↺ 한국어</b>를 누르면 한국어로 돌아옵니다.</div>
+    <div class="note notranslate">이 화면은 집필진이 만든 <b>화면 시안</b>입니다(업체에 넘기는 원고). 흐름: 오늘의 어휘 → 뜻 알아보기 → 교과서 맛보기 → 연습하기 → 정리하기.<br>· ‘생활 속 뜻’은 영상 시안(소리 없음)이나 컷 대본으로 봅니다. <b>📜 대본</b>을 누르면 업체에 전할 컷별 대본·연출 메모가 보입니다. 실제 영상·캐릭터는 업체가 만듭니다.<br>· 화면 틀은 업체 SB(작년 초등 스토리보드) 3·4쪽을 따릅니다: 위 왼쪽 ⚙ 설정·🌐 다국어·🔊 지시문 다시 듣기, 오른쪽 보상 막대(밝은 영역이 이 화면의 보상), 지시문 아래 청록 띠는 지시문 번역, 아래 가운데 점은 페이지 이동, 카드 안 ↵가 확인입니다.<br>· <b>제작 메모</b>를 켜면 화면마다 원본 유형, 개발 영역(영상/HTML), 음원(튜토리얼·대사·낭독), 지시문 확인, 메모가 보입니다.<br>· <b>💬 검토 의견</b>을 누르면 지금 화면에 대한 의견이 구글 시트에 기록됩니다.<br>· 말하기 녹음, 손글씨 인식은 화면만 있고 채점하지 않습니다. 고르기·빈칸의 기회는 ‘보기 수 − 1’(최대 3번)이고, 기회를 다 쓰면 정답을 보여 주고 넘어갑니다.</div>
   </aside>
   <section class="main">
     <div class="top">
@@ -701,7 +755,6 @@ canvas.wr{border:.14em solid #111;border-radius:.8em;background:#fffdf2;touch-ac
       <button class="ghost" id="resetBtn" title="이 차시에서 한 활동 기록을 지워요">↺<span> 기록 지우기</span></button>
       <button class="ghost notranslate" id="askBtn" title="회의록·키트 지침·틀을 근거로 AI에게 물어요(집필진·검토위원용, 접속 암호 필요)" style="display:none">🤖<span> 지침 묻기</span></button>
       <button class="ghost notranslate cmtb" id="cmtBtn" title="오른쪽에 검토 의견 칸을 열고 닫아요(구글 시트에 기록)">💬 검토 의견</button>
-      <div class="lang notranslate" translate="no"><span>🌐</span><select id="langSel" aria-label="번역 언어 선택 / Language"></select><button id="langReset" title="한국어로 되돌리기 / Back to Korean">↺ 한국어 · Korean</button><div id="google_translate_element"></div></div>
       <div class="ttl notranslate" id="topTitle"></div>
       <button id="prevMod">‹ 목차</button><button id="nextMod">목차 ›</button>
     </div>
@@ -720,10 +773,14 @@ canvas.wr{border:.14em solid #111;border-radius:.8em;background:#fffdf2;touch-ac
    모든 차시가 같은 여섯 단계(도입 – 어휘 제시 – 정의 – 용례 – 연습 – 마무리)와 같은 화면 순서를 갖게 하기 위해서다. */
 
 const KIT=(function(){
+  // 검토 의견·지침 묻기: 모든 차시가 같은 서버를 쓴다. 그래서 검토위원 비밀번호도 모든 차시에서 같다. 차시 내용에 따로 적지 않는다.
+  const REVIEW={comment:'https://script.google.com/macros/s/AKfycbyyVQ9bYSSTL5T0yYCiYR_xMSjfuE04w0ZHRJoC4DZLVoZPCOn9E2EVxwMrGGSf3OZlew/exec',
+    sheet:'https://docs.google.com/spreadsheets/d/1eIOEVhjYTogAEFeZJe3kG7yS8dbNx2yjwDJeqonQEyk/edit?usp=sharing',
+    ask:'https://script.google.com/macros/s/AKfycbwB6R5cWqCF7lY8wBxwsEtu45AKvTrceFa9mjPvFSCPKfHWmh8NpN10yzFiXTdPrbiL/exec'};
   const CAST=['아미르','유나'];                                             // 인물 0, 인물 1 (임시 이름·임시 그림)
   const LANG6=['English','中文','日本語','Tiếng Việt','Русский','العربية'];   // lang 의 줄 순서
   const GRADE={'공통':'중학교 1~2학년 공통','중1':'중학교 1학년','중2':'중학교 2학년'};
-  const LESSONS={"1":{"grade":"공통","title":"문제에서 쓰는 말 ① 구하기","std":"","std_text":"","words":["구하다(구하시오)","계산하다(계산하시오)","풀다(푸시오)"],"core":[],"pre":[]},"2":{"grade":"공통","title":"문제에서 쓰는 말 ② 나타내기","std":"","std_text":"","words":["나타내다(나타내시오)","쓰다(쓰시오)","완성하다(완성하시오)"],"core":[],"pre":[]},"3":{"grade":"공통","title":"문제에서 쓰는 말 ③ 고르기","std":"","std_text":"","words":["고르다(고르시오)","찾다(찾으시오)","구분하다(구분하시오)"],"core":[],"pre":[]},"4":{"grade":"공통","title":"문제에서 쓰는 말 ④ 설명하기","std":"","std_text":"","words":["설명하다(설명하시오)","말하다(말하시오)","답하다(답하시오)"],"core":[],"pre":[]},"5":{"grade":"공통","title":"문제에서 쓰는 말 ⑤ 그리기·살피기","std":"","std_text":"","words":["그리다(그리시오)","작도하다(작도하시오)","비교하다(비교하시오)"],"core":[],"pre":[]},"6":{"grade":"중1","title":"소수와 합성수","std":"[9수01-01]","std_text":"소인수분해의 뜻을 알고, 자연수를 소인수분해 할 수 있다.","words":["소수","합성수"],"core":["소수","합성수"],"pre":[]},"7":{"grade":"중1","title":"소인수분해","std":"[9수01-01]","std_text":"소인수분해의 뜻을 알고, 자연수를 소인수분해 할 수 있다.","words":["소인수분해","거듭제곱"],"core":["소인수분해","거듭제곱"],"pre":[["소수",6]]},"8":{"grade":"중1","title":"최대공약수","std":"[9수01-02]","std_text":"소인수분해를 이용하여 최대공약수와 최소공배수를 구할 수 있다.","words":["최대공약수","공약수"],"core":["최대공약수"],"pre":[["약수",6],["소인수분해",7]]},"9":{"grade":"중1","title":"최소공배수","std":"[9수01-02]","std_text":"소인수분해를 이용하여 최대공약수와 최소공배수를 구할 수 있다.","words":["최소공배수","공배수"],"core":["최소공배수"],"pre":[["소인수분해",7]]},"10":{"grade":"중1","title":"정수","std":"[9수01-03]","std_text":"다양한 상황을 이용하여 음수의 필요성을 인식하고, 양수와 음수, 정수와 유리수의 개념을 이해한다.","words":["정수","양수","음수"],"core":["정수"],"pre":[]},"11":{"grade":"중1","title":"유리수","std":"[9수01-03]","std_text":"다양한 상황을 이용하여 음수의 필요성을 인식하고, 양수와 음수, 정수와 유리수의 개념을 이해한다.","words":["유리수"],"core":["유리수"],"pre":[["양수",10],["음수",10],["정수",10]]},"12":{"grade":"중1","title":"절댓값","std":"[9수01-04]","std_text":"정수와 유리수의 대소 관계를 판단할 수 있다.","words":["절댓값","수직선"],"core":["절댓값"],"pre":[["양수",10],["음수",10]]},"13":{"grade":"중1","title":"계산 법칙","std":"[9수01-05]","std_text":"정수와 유리수의 사칙계산의 원리를 이해하고, 그 계산을 할 수 있다.","words":["대소관계","분배법칙"],"core":["대소관계","분배법칙"],"pre":[["절댓값",12]]},"14":{"grade":"중1","title":"역수와 사칙계산","std":"[9수01-05]","std_text":"정수와 유리수의 사칙계산의 원리를 이해하고, 그 계산을 할 수 있다.","words":["역수","사칙계산"],"core":["역수","사칙계산"],"pre":[]},"15":{"grade":"중1","title":"항과 계수","std":"[9수02-02]","std_text":"일차식의 덧셈과 뺄셈의 원리를 이해하고, 그 계산을 할 수 있다.","words":["항","계수"],"core":["항","계수"],"pre":[]},"16":{"grade":"중1","title":"다항식과 단항식","std":"[9수02-02]","std_text":"일차식의 덧셈과 뺄셈의 원리를 이해하고, 그 계산을 할 수 있다.","words":["다항식","단항식"],"core":["다항식"],"pre":[["항",15]]},"17":{"grade":"중1","title":"차수와 동류항","std":"[9수02-02]","std_text":"일차식의 덧셈과 뺄셈의 원리를 이해하고, 그 계산을 할 수 있다.","words":["차수","동류항"],"core":["차수","동류항"],"pre":[["항",15],["다항식",16],["거듭제곱",7]]},"18":{"grade":"중1","title":"방정식","std":"[9수02-03]","std_text":"방정식과 그 해의 뜻을 알고, 등식의 성질을 설명할 수 있다.","words":["방정식","미지수","해(또는 근)"],"core":["방정식","미지수","해(또는 근)"],"pre":[]},"19":{"grade":"중1","title":"등식의 성질","std":"[9수02-03]\n[9수02-04]","std_text":"방정식과 그 해의 뜻을 알고, 등식의 성질을 설명할 수 있다.\n일차방정식을 풀 수 있고, 이를 활용하여 문제를 해결할 수 있다.","words":["등식의 성질","이항"],"core":["등식의 성질","이항"],"pre":[["방정식",18]]},"20":{"grade":"중1","title":"순서쌍","std":"[9수02-05]","std_text":"순서쌍과 좌표를 이해하고, 그 편리함을 인식할 수 있다.","words":["순서쌍","좌표"],"core":["순서쌍"],"pre":[["수직선",12]]},"21":{"grade":"중1","title":"좌표평면","std":"[9수02-05]","std_text":"순서쌍과 좌표를 이해하고, 그 편리함을 인식할 수 있다.","words":["좌표평면","좌표축"],"core":["좌표평면"],"pre":[["순서쌍",20]]},"22":{"grade":"중1","title":"변수와 그래프","std":"[9수02-06]","std_text":"다양한 상황을 그래프로 나타내고, 주어진 그래프를 해석할 수 있다.","words":["변수"],"core":["변수"],"pre":[["좌표평면",21]]},"23":{"grade":"중1","title":"변수와 그래프","std":"[9수02-06]","std_text":"다양한 상황을 그래프로 나타내고, 주어진 그래프를 해석할 수 있다.","words":["그래프"],"core":["그래프"],"pre":[["좌표평면",21]]},"24":{"grade":"중1","title":"정비례와 반비례","std":"[9수02-07]","std_text":"정비례, 반비례 관계를 이해하고, 그 관계를 표, 식, 그래프로 나타낼 수 있다.","words":["정비례","반비례"],"core":["정비례","반비례"],"pre":[["변수",22],["그래프",22]]},"25":{"grade":"중1","title":"직선과 선분","std":"[9수03-01]","std_text":"점, 선, 면, 각을 이해하고, 실생활 상황과 연결하여 점, 직선, 평면의 위치 관계를 설명할 수 있다.","words":["직선","선분"],"core":["직선","선분"],"pre":[]},"26":{"grade":"중1","title":"각","std":"[9수03-01]","std_text":"점, 선, 면, 각을 이해하고, 실생활 상황과 연결하여 점, 직선, 평면의 위치 관계를 설명할 수 있다.","words":["각","직각"],"core":["각"],"pre":[["직선",24]]},"27":{"grade":"중1","title":"평행","std":"[9수03-01]","std_text":"점, 선, 면, 각을 이해하고, 실생활 상황과 연결하여 점, 직선, 평면의 위치 관계를 설명할 수 있다.","words":["평행"],"core":["평행"],"pre":[["직선",24]]},"28":{"grade":"중1","title":"동위각과 엇각","std":"[9수03-02]","std_text":"평행선에서 동위각과 엇각의 성질을 이해하고 설명할 수 있다.","words":["동위각","엇각"],"core":["동위각","엇각"],"pre":[["평행",26],["각",25]]},"29":{"grade":"중1","title":"합동","std":"[9수03-04]","std_text":"삼각형의 합동 조건을 이해하고, 이를 이용하여 두 삼각형이 합동인지 판별할 수 있다.","words":["합동"],"core":["합동"],"pre":[]},"30":{"grade":"중1","title":"삼각형의 합동 조건","std":"[9수03-03]\n[9수03-04]","std_text":"삼각형을 작도하고, 그 과정을 설명할 수 있다.\n삼각형의 합동 조건을 이해하고, 이를 이용하여 두 삼각형이 합동인지 판별할 수 있다.","words":["삼각형의 합동 조건"],"core":["삼각형의 합동 조건"],"pre":[["합동",28]]},"31":{"grade":"중1","title":"다각형","std":"[9수03-05]","std_text":"다각형의 성질을 이해하고 설명할 수 있다.","words":["다각형","대각선"],"core":[],"pre":[["각",25],["선분",24]]},"32":{"grade":"중1","title":"부채꼴","std":"[9수03-06]","std_text":"부채꼴의 중심각과 호의 관계를 이해하고, 이를 이용하여 부채꼴의 호의 길이와 넓이를 구할 수 있다.","words":["부채꼴","원주율(π)"],"core":["원주율(π)"],"pre":[]},"33":{"grade":"중1","title":"다면체","std":"[9수03-07]","std_text":"구체적인 모형이나 공학 도구를 이용하여 다면체와 회전체의 성질을 탐구하고, 이를 설명할 수 있다.","words":["다면체"],"core":[],"pre":[["다각형",30]]},"34":{"grade":"중1","title":"회전체","std":"[9수03-07]\n[9수03-08]","std_text":"구체적인 모형이나 공학 도구를 이용하여 다면체와 회전체의 성질을 탐구하고, 이를 설명할 수 있다.\n입체도형의 겉넓이와 부피를 구할 수 있다.","words":["회전체"],"core":[],"pre":[]},"35":{"grade":"중1","title":"대푯값","std":"[9수04-01]","std_text":"중앙값, 최빈값의 뜻을 알고, 자료의 특성에 따라 적절한 대푯값을 선택하여 구할 수 있다.","words":["대푯값","변량"],"core":["대푯값","변량"],"pre":[]},"36":{"grade":"중1","title":"중앙값과 최빈값","std":"[9수04-01]","std_text":"중앙값, 최빈값의 뜻을 알고, 자료의 특성에 따라 적절한 대푯값을 선택하여 구할 수 있다.","words":["중앙값","최빈값"],"core":[],"pre":[]},"37":{"grade":"중1","title":"도수","std":"[9수04-02]","std_text":"자료를 줄기와 잎 그림, 도수분포표, 히스토그램, 도수분포다각형으로 나타내고 해석할 수 있다.","words":["도수","계급"],"core":["도수"],"pre":[["변량",34]]},"38":{"grade":"중1","title":"상대도수","std":"[9수04-02]\n[9수04-03]","std_text":"자료를 줄기와 잎 그림, 도수분포표, 히스토그램, 도수분포다각형으로 나타내고 해석할 수 있다.\n상대도수를 구하고, 상대도수의 분포를 표나 그래프로 나타내고 해석할 수 있다.","words":["상대도수"],"core":["상대도수"],"pre":[["도수",36],["계급",36]]},"39":{"grade":"중2","title":"유한소수와 무한소수","std":"[9수01-06]","std_text":"순환소수의 뜻을 알고, 유리수와 순환소수의 관계를 설명할 수 있다.","words":["유한소수","무한소수"],"core":[],"pre":[["유리수",11],["소인수",7]]},"40":{"grade":"중2","title":"순환소수","std":"[9수01-06]","std_text":"순환소수의 뜻을 알고, 유리수와 순환소수의 관계를 설명할 수 있다.","words":["순환소수"],"core":["순환소수"],"pre":[["무한소수",38],["거듭제곱",7]]},"41":{"grade":"중2","title":"지수법칙","std":"[9수02-08]\n[9수02-10]","std_text":"지수법칙을 이해하고, 이를 이용하여 식을 간단히 할 수 있다.\n‘(단항식)x(다항식)', '(다항식)/(단항식)'과 같은 곱셈과 나눗셈의 원리를 이해하고, 그 계산을 할 수 있다.","words":["지수법칙"],"core":["지수법칙"],"pre":[["거듭제곱",7],["단항식",16],["계수",15],["역수",14],["교환법칙",13],["결합법칙",13]]},"42":{"grade":"중2","title":"다항식의 계산","std":"[9수02-09]\n[9수02-10]","std_text":"다항식의 덧셈과 뺄셈의 원리를 이해하고, 그 계산을 할 수 있다.\n‘(단항식)x(다항식)', '(다항식)/(단항식)'과 같은 곱셈과 나눗셈의 원리를 이해하고, 그 계산을 할 수 있다.","words":["이차식","전개"],"core":[],"pre":[["다항식",16],["차수",17],["동류항",17],["분배법칙",13]]},"43":{"grade":"중2","title":"부등식과 그 성질","std":"[9수02-11]","std_text":"부등식과 그 해의 뜻을 알고, 부등식의 성질을 설명할 수 있다.","words":["부등식","부등식의 성질"],"core":["부등식","부등식의 성질"],"pre":[["해(또는 근)",18],["양변",19],["등식의 성질",19]]},"44":{"grade":"중2","title":"일차부등식","std":"[9수02-12]","std_text":"일차부등식을 풀 수 있고, 이를 활용하여 문제를 해결할 수 있다.","words":["일차부등식","일차식"],"core":[],"pre":[["부등식",42],["부등식의 성질",42],["방정식",18],["최소공배수",9]]},"45":{"grade":"중2","title":"연립방정식과 그 해","std":"[9수02-13]","std_text":"미지수가 2개인 연립일차방정식을 풀 수 있고, 이를 활용하여 문제를 해결할 수 있다.","words":["연립(일차)방정식","일차방정식"],"core":["연립(일차)방정식"],"pre":[["미지수",18],["해(또는 근)",18],["순서쌍",20]]},"46":{"grade":"중2","title":"연립방정식의 풀이","std":"[9수02-13]","std_text":"미지수가 2개인 연립일차방정식을 풀 수 있고, 이를 활용하여 문제를 해결할 수 있다.","words":["대입법","가감법"],"core":["대입법","가감법"],"pre":[["연립(일차)방정식",44],["등식의 성질",19],["대입",18]]},"47":{"grade":"중2","title":"함수","std":"[9수02-14]","std_text":"함수의 개념을 이해하고, 함숫값을 구할 수 있다.","words":["함수"],"core":["함수"],"pre":[["변수",22],["정비례",23],["반비례",23]]},"48":{"grade":"중2","title":"절편과 기울기","std":"[9수02-16]","std_text":"일차함수의 그래프의 성질을 이해하고, 이를 활용하여 문제를 해결할 수 있다.","words":["x절편","y절편","기울기"],"core":["x절편","y절편","기울기"],"pre":[["일차함수",47],["좌표",20],["좌표축",21],["대입",18],["계수",15],["양수",10],["음수",10],["평행",26],["그래프",22]]},"49":{"grade":"중2","title":"직선의 방정식","std":"[9수02-17]\n[9수02-18]","std_text":"일차함수와 미지수가 2개인 일차방정식의 관계를 설명할 수 있다.\n두 일차함수의 그래프와 연립일차방정식의 관계를 설명할 수 있다.","words":["직선의 방정식"],"core":["직선의 방정식"],"pre":[["기울기",48],["y절편",48],["일차함수",47],["일차방정식",44],["연립(일차)방정식",44],["해(또는 근)",18]]},"50":{"grade":"중2","title":"이등변삼각형","std":"[9수03-09]","std_text":"이등변삼각형의 성질을 이해하고 정당화할 수 있다.","words":["꼭지각","밑각"],"core":[],"pre":[["합동",28]]},"51":{"grade":"중2","title":"직각삼각형의 합동 조건","std":"[9수03-09]","std_text":"이등변삼각형의 성질을 이해하고 정당화할 수 있다.","words":["직각삼각형의 합동 조건"],"core":[],"pre":[["직각",25],["합동",28],["삼각형의 합동 조건",29],["S와 A",29],["증명",50]]},"52":{"grade":"중2","title":"삼각형의 외심","std":"[9수03-10]","std_text":"삼각형의 외심과 내심의 성질을 이해하고 정당화할 수 있다.","words":["외접원","외심"],"core":[],"pre":[["교점",49]]},"53":{"grade":"중2","title":"삼각형의 내심","std":"[9수03-10]","std_text":"삼각형의 외심과 내심의 성질을 이해하고 정당화할 수 있다.","words":["내접원","내심"],"core":[],"pre":[["외접원",52],["각",25]]},"54":{"grade":"중2","title":"평행사변형과 여러 가지 사각형","std":"[9수03-11]","std_text":"사각형의 성질을 이해하고 정당화할 수 있다.","words":["평행사변형","대변"],"core":["평행사변형"],"pre":[["평행",26],["합동",28],["대각선",30]]},"55":{"grade":"중2","title":"도형의 닮음","std":"[9수03-12]","std_text":"도형의 닮음의 뜻과 닮은 도형의 성질을 이해하고, 닮음비를 구할 수 있다.","words":["닮음","닮음비"],"core":["닮음"],"pre":[["합동",28],["대응변",28],["대응각",28]]},"56":{"grade":"중2","title":"삼각형의 닮음 조건","std":"[9수03-13]","std_text":"삼각형의 닮음 조건을 이해하고, 이를 이용하여 두 삼각형이 닮음인지 판별할 수 있다.","words":["삼각형의 닮음 조건"],"core":["삼각형의 닮음 조건"],"pre":[["닮음",55],["닮음비",55],["삼각형의 합동 조건",29],["S와 A",29],["끼인각",29]]},"57":{"grade":"중2","title":"삼각형의 무게중심","std":"[9수03-14]","std_text":"평행선 사이의 선분의 길이의 비를 구할 수 있다.","words":["중선","삼각형의 무게중심"],"core":[],"pre":[["대변",54],["평행",26],["닮음",55]]},"58":{"grade":"중2","title":"피타고라스 정리","std":"[9수03-15]","std_text":"피타고라스 정리를 이해하고 정당화할 수 있다.","words":["피타고라스 정리"],"core":["피타고라스 정리"],"pre":[["빗변",51],["거듭제곱",7]]},"59":{"grade":"중2","title":"경우의 수","std":"[9수04-05]","std_text":"경우의 수를 구할 수 있다.","words":["경우의 수","사건"],"core":["경우의 수"],"pre":[]},"60":{"grade":"중2","title":"확률","std":"[9수04-06]","std_text":"확률의 개념과 그 기본 성질을 이해하고, 확률을 구할 수 있다.","words":["확률"],"core":["확률"],"pre":[["경우의 수",59],["사건",59],["상대도수",37]]}};                                         // 60차시 목록(자료/60차시 목록.json 과 같다)
+  const LESSONS={"1":{"grade":"공통","title":"문제에서 쓰는 말 ① 구하기","std":"","std_text":"","words":["구하다(구하시오)","계산하다(계산하시오)","풀다(푸시오)"],"core":[],"pre":[]},"2":{"grade":"공통","title":"문제에서 쓰는 말 ② 나타내기","std":"","std_text":"","words":["나타내다(나타내시오)","쓰다(쓰시오)","완성하다(완성하시오)"],"core":[],"pre":[]},"3":{"grade":"공통","title":"문제에서 쓰는 말 ③ 고르기","std":"","std_text":"","words":["고르다(고르시오)","찾다(찾으시오)","구분하다(구분하시오)"],"core":[],"pre":[]},"4":{"grade":"공통","title":"문제에서 쓰는 말 ④ 설명하기","std":"","std_text":"","words":["설명하다(설명하시오)","말하다(말하시오)","답하다(답하시오)"],"core":[],"pre":[]},"5":{"grade":"공통","title":"문제에서 쓰는 말 ⑤ 그리기·살피기","std":"","std_text":"","words":["그리다(그리시오)","작도하다(작도하시오)","비교하다(비교하시오)"],"core":[],"pre":[]},"6":{"grade":"중1","title":"소수와 합성수","std":"[9수01-01]","std_text":"소인수분해의 뜻을 알고, 자연수를 소인수분해 할 수 있다.","words":["소수","합성수"],"core":["소수","합성수"],"pre":[]},"7":{"grade":"중1","title":"소인수분해","std":"[9수01-01]","std_text":"소인수분해의 뜻을 알고, 자연수를 소인수분해 할 수 있다.","words":["소인수분해","소인수","거듭제곱"],"core":["소인수분해"],"pre":[["소수",6]]},"8":{"grade":"중1","title":"최대공약수","std":"[9수01-02]","std_text":"소인수분해를 이용하여 최대공약수와 최소공배수를 구할 수 있다.","words":["최대공약수","공약수"],"core":["최대공약수"],"pre":[["약수",6],["소인수분해",7]]},"9":{"grade":"중1","title":"최소공배수","std":"[9수01-02]","std_text":"소인수분해를 이용하여 최대공약수와 최소공배수를 구할 수 있다.","words":["최소공배수","공배수"],"core":["최소공배수"],"pre":[["소인수분해",7]]},"10":{"grade":"중1","title":"정수","std":"[9수01-03]","std_text":"다양한 상황을 이용하여 음수의 필요성을 인식하고, 양수와 음수, 정수와 유리수의 개념을 이해한다.","words":["정수","양수","음수"],"core":["정수"],"pre":[]},"11":{"grade":"중1","title":"유리수","std":"[9수01-03]","std_text":"다양한 상황을 이용하여 음수의 필요성을 인식하고, 양수와 음수, 정수와 유리수의 개념을 이해한다.","words":["유리수"],"core":["유리수"],"pre":[["양수",10],["음수",10],["정수",10]]},"12":{"grade":"중1","title":"절댓값","std":"[9수01-04]","std_text":"정수와 유리수의 대소 관계를 판단할 수 있다.","words":["절댓값","수직선"],"core":["절댓값"],"pre":[["양수",10],["음수",10]]},"13":{"grade":"중1","title":"계산 법칙","std":"[9수01-05]","std_text":"정수와 유리수의 사칙계산의 원리를 이해하고, 그 계산을 할 수 있다.","words":["대소관계","분배법칙"],"core":["대소관계","분배법칙"],"pre":[["절댓값",12]]},"14":{"grade":"중1","title":"역수와 사칙계산","std":"[9수01-05]","std_text":"정수와 유리수의 사칙계산의 원리를 이해하고, 그 계산을 할 수 있다.","words":["역수","사칙계산"],"core":["역수","사칙계산"],"pre":[]},"15":{"grade":"중1","title":"항과 계수","std":"[9수02-02]","std_text":"일차식의 덧셈과 뺄셈의 원리를 이해하고, 그 계산을 할 수 있다.","words":["항","계수"],"core":["항","계수"],"pre":[]},"16":{"grade":"중1","title":"다항식과 단항식","std":"[9수02-02]","std_text":"일차식의 덧셈과 뺄셈의 원리를 이해하고, 그 계산을 할 수 있다.","words":["다항식","단항식"],"core":["다항식"],"pre":[["항",15]]},"17":{"grade":"중1","title":"차수와 동류항","std":"[9수02-02]","std_text":"일차식의 덧셈과 뺄셈의 원리를 이해하고, 그 계산을 할 수 있다.","words":["차수","동류항"],"core":["차수","동류항"],"pre":[["항",15],["다항식",16],["거듭제곱",7]]},"18":{"grade":"중1","title":"방정식","std":"[9수02-03]","std_text":"방정식과 그 해의 뜻을 알고, 등식의 성질을 설명할 수 있다.","words":["방정식","미지수","해(또는 근)"],"core":["방정식","미지수","해(또는 근)"],"pre":[]},"19":{"grade":"중1","title":"등식의 성질","std":"[9수02-03]\n[9수02-04]","std_text":"방정식과 그 해의 뜻을 알고, 등식의 성질을 설명할 수 있다.\n일차방정식을 풀 수 있고, 이를 활용하여 문제를 해결할 수 있다.","words":["등식의 성질","이항"],"core":["등식의 성질","이항"],"pre":[["방정식",18]]},"20":{"grade":"중1","title":"순서쌍","std":"[9수02-05]","std_text":"순서쌍과 좌표를 이해하고, 그 편리함을 인식할 수 있다.","words":["순서쌍","좌표"],"core":["순서쌍"],"pre":[["수직선",12]]},"21":{"grade":"중1","title":"좌표평면","std":"[9수02-05]","std_text":"순서쌍과 좌표를 이해하고, 그 편리함을 인식할 수 있다.","words":["좌표평면","좌표축"],"core":["좌표평면"],"pre":[["순서쌍",20]]},"22":{"grade":"중1","title":"변수와 그래프","std":"[9수02-06]","std_text":"다양한 상황을 그래프로 나타내고, 주어진 그래프를 해석할 수 있다.","words":["변수"],"core":["변수"],"pre":[["좌표평면",21]]},"23":{"grade":"중1","title":"변수와 그래프","std":"[9수02-06]","std_text":"다양한 상황을 그래프로 나타내고, 주어진 그래프를 해석할 수 있다.","words":["그래프"],"core":["그래프"],"pre":[["좌표평면",21]]},"24":{"grade":"중1","title":"정비례와 반비례","std":"[9수02-07]","std_text":"정비례, 반비례 관계를 이해하고, 그 관계를 표, 식, 그래프로 나타낼 수 있다.","words":["정비례","반비례"],"core":["정비례","반비례"],"pre":[["변수",22],["그래프",22]]},"25":{"grade":"중1","title":"직선과 선분","std":"[9수03-01]","std_text":"점, 선, 면, 각을 이해하고, 실생활 상황과 연결하여 점, 직선, 평면의 위치 관계를 설명할 수 있다.","words":["직선","선분"],"core":["직선","선분"],"pre":[]},"26":{"grade":"중1","title":"각","std":"[9수03-01]","std_text":"점, 선, 면, 각을 이해하고, 실생활 상황과 연결하여 점, 직선, 평면의 위치 관계를 설명할 수 있다.","words":["각","직각"],"core":["각"],"pre":[["직선",24]]},"27":{"grade":"중1","title":"평행","std":"[9수03-01]","std_text":"점, 선, 면, 각을 이해하고, 실생활 상황과 연결하여 점, 직선, 평면의 위치 관계를 설명할 수 있다.","words":["평행"],"core":["평행"],"pre":[["직선",24]]},"28":{"grade":"중1","title":"동위각과 엇각","std":"[9수03-02]","std_text":"평행선에서 동위각과 엇각의 성질을 이해하고 설명할 수 있다.","words":["동위각","엇각"],"core":["동위각","엇각"],"pre":[["평행",26],["각",25]]},"29":{"grade":"중1","title":"합동","std":"[9수03-04]","std_text":"삼각형의 합동 조건을 이해하고, 이를 이용하여 두 삼각형이 합동인지 판별할 수 있다.","words":["합동"],"core":["합동"],"pre":[]},"30":{"grade":"중1","title":"삼각형의 합동 조건","std":"[9수03-03]\n[9수03-04]","std_text":"삼각형을 작도하고, 그 과정을 설명할 수 있다.\n삼각형의 합동 조건을 이해하고, 이를 이용하여 두 삼각형이 합동인지 판별할 수 있다.","words":["삼각형의 합동 조건"],"core":["삼각형의 합동 조건"],"pre":[["합동",28]]},"31":{"grade":"중1","title":"다각형","std":"[9수03-05]","std_text":"다각형의 성질을 이해하고 설명할 수 있다.","words":["다각형","대각선"],"core":[],"pre":[["각",25],["선분",24]]},"32":{"grade":"중1","title":"부채꼴","std":"[9수03-06]","std_text":"부채꼴의 중심각과 호의 관계를 이해하고, 이를 이용하여 부채꼴의 호의 길이와 넓이를 구할 수 있다.","words":["부채꼴","원주율(π)"],"core":["원주율(π)"],"pre":[]},"33":{"grade":"중1","title":"다면체","std":"[9수03-07]","std_text":"구체적인 모형이나 공학 도구를 이용하여 다면체와 회전체의 성질을 탐구하고, 이를 설명할 수 있다.","words":["다면체"],"core":[],"pre":[["다각형",30]]},"34":{"grade":"중1","title":"회전체","std":"[9수03-07]\n[9수03-08]","std_text":"구체적인 모형이나 공학 도구를 이용하여 다면체와 회전체의 성질을 탐구하고, 이를 설명할 수 있다.\n입체도형의 겉넓이와 부피를 구할 수 있다.","words":["회전체"],"core":[],"pre":[]},"35":{"grade":"중1","title":"대푯값","std":"[9수04-01]","std_text":"중앙값, 최빈값의 뜻을 알고, 자료의 특성에 따라 적절한 대푯값을 선택하여 구할 수 있다.","words":["대푯값","변량"],"core":["대푯값","변량"],"pre":[]},"36":{"grade":"중1","title":"중앙값과 최빈값","std":"[9수04-01]","std_text":"중앙값, 최빈값의 뜻을 알고, 자료의 특성에 따라 적절한 대푯값을 선택하여 구할 수 있다.","words":["중앙값","최빈값"],"core":[],"pre":[]},"37":{"grade":"중1","title":"도수","std":"[9수04-02]","std_text":"자료를 줄기와 잎 그림, 도수분포표, 히스토그램, 도수분포다각형으로 나타내고 해석할 수 있다.","words":["도수","계급"],"core":["도수"],"pre":[["변량",34]]},"38":{"grade":"중1","title":"상대도수","std":"[9수04-02]\n[9수04-03]","std_text":"자료를 줄기와 잎 그림, 도수분포표, 히스토그램, 도수분포다각형으로 나타내고 해석할 수 있다.\n상대도수를 구하고, 상대도수의 분포를 표나 그래프로 나타내고 해석할 수 있다.","words":["상대도수"],"core":["상대도수"],"pre":[["도수",36],["계급",36]]},"39":{"grade":"중2","title":"유한소수와 무한소수","std":"[9수01-06]","std_text":"순환소수의 뜻을 알고, 유리수와 순환소수의 관계를 설명할 수 있다.","words":["유한소수","무한소수"],"core":[],"pre":[["유리수",11],["소인수",7]]},"40":{"grade":"중2","title":"순환소수","std":"[9수01-06]","std_text":"순환소수의 뜻을 알고, 유리수와 순환소수의 관계를 설명할 수 있다.","words":["순환소수"],"core":["순환소수"],"pre":[["무한소수",38],["거듭제곱",7]]},"41":{"grade":"중2","title":"지수법칙","std":"[9수02-08]\n[9수02-10]","std_text":"지수법칙을 이해하고, 이를 이용하여 식을 간단히 할 수 있다.\n‘(단항식)x(다항식)', '(다항식)/(단항식)'과 같은 곱셈과 나눗셈의 원리를 이해하고, 그 계산을 할 수 있다.","words":["지수법칙"],"core":["지수법칙"],"pre":[["거듭제곱",7],["단항식",16],["계수",15],["역수",14],["교환법칙",13],["결합법칙",13]]},"42":{"grade":"중2","title":"다항식의 계산","std":"[9수02-09]\n[9수02-10]","std_text":"다항식의 덧셈과 뺄셈의 원리를 이해하고, 그 계산을 할 수 있다.\n‘(단항식)x(다항식)', '(다항식)/(단항식)'과 같은 곱셈과 나눗셈의 원리를 이해하고, 그 계산을 할 수 있다.","words":["이차식","전개"],"core":[],"pre":[["다항식",16],["차수",17],["동류항",17],["분배법칙",13]]},"43":{"grade":"중2","title":"부등식과 그 성질","std":"[9수02-11]","std_text":"부등식과 그 해의 뜻을 알고, 부등식의 성질을 설명할 수 있다.","words":["부등식","부등식의 성질"],"core":["부등식","부등식의 성질"],"pre":[["해(또는 근)",18],["양변",19],["등식의 성질",19]]},"44":{"grade":"중2","title":"일차부등식","std":"[9수02-12]","std_text":"일차부등식을 풀 수 있고, 이를 활용하여 문제를 해결할 수 있다.","words":["일차부등식","일차식"],"core":[],"pre":[["부등식",42],["부등식의 성질",42],["방정식",18],["최소공배수",9]]},"45":{"grade":"중2","title":"연립방정식과 그 해","std":"[9수02-13]","std_text":"미지수가 2개인 연립일차방정식을 풀 수 있고, 이를 활용하여 문제를 해결할 수 있다.","words":["연립(일차)방정식","일차방정식"],"core":["연립(일차)방정식"],"pre":[["미지수",18],["해(또는 근)",18],["순서쌍",20]]},"46":{"grade":"중2","title":"연립방정식의 풀이","std":"[9수02-13]","std_text":"미지수가 2개인 연립일차방정식을 풀 수 있고, 이를 활용하여 문제를 해결할 수 있다.","words":["대입법","가감법"],"core":["대입법","가감법"],"pre":[["연립(일차)방정식",44],["등식의 성질",19],["대입",18]]},"47":{"grade":"중2","title":"함수","std":"[9수02-14]","std_text":"함수의 개념을 이해하고, 함숫값을 구할 수 있다.","words":["함수"],"core":["함수"],"pre":[["변수",22],["정비례",23],["반비례",23]]},"48":{"grade":"중2","title":"절편과 기울기","std":"[9수02-16]","std_text":"일차함수의 그래프의 성질을 이해하고, 이를 활용하여 문제를 해결할 수 있다.","words":["x절편","y절편","기울기"],"core":["x절편","y절편","기울기"],"pre":[["일차함수",47],["좌표",20],["좌표축",21],["대입",18],["계수",15],["양수",10],["음수",10],["평행",26],["그래프",22]]},"49":{"grade":"중2","title":"직선의 방정식","std":"[9수02-17]\n[9수02-18]","std_text":"일차함수와 미지수가 2개인 일차방정식의 관계를 설명할 수 있다.\n두 일차함수의 그래프와 연립일차방정식의 관계를 설명할 수 있다.","words":["직선의 방정식"],"core":["직선의 방정식"],"pre":[["기울기",48],["y절편",48],["일차함수",47],["일차방정식",44],["연립(일차)방정식",44],["해(또는 근)",18]]},"50":{"grade":"중2","title":"이등변삼각형","std":"[9수03-09]","std_text":"이등변삼각형의 성질을 이해하고 정당화할 수 있다.","words":["꼭지각","밑각"],"core":[],"pre":[["합동",28]]},"51":{"grade":"중2","title":"직각삼각형의 합동 조건","std":"[9수03-09]","std_text":"이등변삼각형의 성질을 이해하고 정당화할 수 있다.","words":["직각삼각형의 합동 조건"],"core":[],"pre":[["직각",25],["합동",28],["삼각형의 합동 조건",29],["S와 A",29],["증명",50]]},"52":{"grade":"중2","title":"삼각형의 외심","std":"[9수03-10]","std_text":"삼각형의 외심과 내심의 성질을 이해하고 정당화할 수 있다.","words":["외접원","외심"],"core":[],"pre":[["교점",49]]},"53":{"grade":"중2","title":"삼각형의 내심","std":"[9수03-10]","std_text":"삼각형의 외심과 내심의 성질을 이해하고 정당화할 수 있다.","words":["내접원","내심"],"core":[],"pre":[["외접원",52],["각",25]]},"54":{"grade":"중2","title":"평행사변형과 여러 가지 사각형","std":"[9수03-11]","std_text":"사각형의 성질을 이해하고 정당화할 수 있다.","words":["평행사변형","대변"],"core":["평행사변형"],"pre":[["평행",26],["합동",28],["대각선",30]]},"55":{"grade":"중2","title":"도형의 닮음","std":"[9수03-12]","std_text":"도형의 닮음의 뜻과 닮은 도형의 성질을 이해하고, 닮음비를 구할 수 있다.","words":["닮음","닮음비"],"core":["닮음"],"pre":[["합동",28],["대응변",28],["대응각",28]]},"56":{"grade":"중2","title":"삼각형의 닮음 조건","std":"[9수03-13]","std_text":"삼각형의 닮음 조건을 이해하고, 이를 이용하여 두 삼각형이 닮음인지 판별할 수 있다.","words":["삼각형의 닮음 조건"],"core":["삼각형의 닮음 조건"],"pre":[["닮음",55],["닮음비",55],["삼각형의 합동 조건",29],["S와 A",29],["끼인각",29]]},"57":{"grade":"중2","title":"삼각형의 무게중심","std":"[9수03-14]","std_text":"평행선 사이의 선분의 길이의 비를 구할 수 있다.","words":["중선","삼각형의 무게중심"],"core":[],"pre":[["대변",54],["평행",26],["닮음",55]]},"58":{"grade":"중2","title":"피타고라스 정리","std":"[9수03-15]","std_text":"피타고라스 정리를 이해하고 정당화할 수 있다.","words":["피타고라스 정리"],"core":["피타고라스 정리"],"pre":[["빗변",51],["거듭제곱",7]]},"59":{"grade":"중2","title":"경우의 수","std":"[9수04-05]","std_text":"경우의 수를 구할 수 있다.","words":["경우의 수","사건"],"core":["경우의 수"],"pre":[]},"60":{"grade":"중2","title":"확률","std":"[9수04-06]","std_text":"확률의 개념과 그 기본 성질을 이해하고, 확률을 구할 수 있다.","words":["확률"],"core":["확률"],"pre":[["경우의 수",59],["사건",59],["상대도수",37]]}};                                         // 60차시 목록(자료/60차시 목록.json 과 같다)
   const plain=t=>String(t).replace(/[*‘’]/g,'');
   const MEMO={
     word:'문제 풀이가 아니라 낱말 확인이다. 식과 그림은 이미 풀린 채로 보여 주고, 학생은 그것을 가리키는 한국어 낱말을 고른다. 답이 수가 되는 문항은 넣지 않는다. 보기는 오늘 익힌 낱말만 쓴다(2026-10-11 회의).',
@@ -765,6 +822,7 @@ const KIT=(function(){
 
   // ── 차시 내용 → 화면 자료 ──
   function build(p){
+    if(p.flow==='1016') return build1016(p);
     const no=p.no, row=LESSONS[no]||{grade:'중1',title:p.title||'',std:'',std_text:''};
     const nw=p.new, aux=p.aux||[], pre=p.pre||[], elem=p.elem||[], ess=p.ess||[], usage=p.usage||[], summary=p.summary||[], PV=p.preview||{};
     const M=[], task=p.kind==='task', MM=task?Object.assign({},MEMO,MEMO_T):MEMO;
@@ -850,18 +908,102 @@ const KIT=(function(){
       chat={url:p.chat_url,words:gl.join('\n')}; }
     const A=String(row.std||'').split('\n'), B=String(row.std_text||'').split('\n');
     const std=p.std||A.map((a,i)=>a+' '+(B[i]||'')).join(' / ');
-    // 검토 의견·지침 묻기: 모든 차시가 같은 서버를 쓴다. 그래서 검토위원 비밀번호도 모든 차시에서 같다. 차시 내용에 따로 적지 않는다.
-    const REVIEW={comment:'https://script.google.com/macros/s/AKfycbyyVQ9bYSSTL5T0yYCiYR_xMSjfuE04w0ZHRJoC4DZLVoZPCOn9E2EVxwMrGGSf3OZlew/exec',
-      sheet:'https://docs.google.com/spreadsheets/d/1eIOEVhjYTogAEFeZJe3kG7yS8dbNx2yjwDJeqonQEyk/edit?usp=sharing',
-      ask:'https://script.google.com/macros/s/AKfycbwB6R5cWqCF7lY8wBxwsEtu45AKvTrceFa9mjPvFSCPKfHWmh8NpN10yzFiXTdPrbiL/exec'};
     const L={tips:task&&TIPS.task_stages?{stages:TIPS.task_stages,common:TIPS.task_common,egLabel:'예: 1차시(구하기)에서는'}:{stages:TIPS.stages,common:TIPS.common},chat:chat,comment:{url:REVIEW.comment,sheet:REVIEW.sheet},ask:{url:REVIEW.ask},code:'L'+String(no).padStart(2,'0'),no:no,title:p.title||row.title,grade:GRADE[row.grade]||'',standard:std,unit:p.unit,
       lessonType:(task?'수행어 차시(문제에서 쓰는 말)':'개념 중심 차시')+' (10분 안팎) · 새 어휘 '+nw.length+'개'+(pre.length?', 미리 확인할 말 '+pre.length+'개':'')+(elem.length?', 초등에서 배운 말 안내 '+elem.length+'개':''),
       words:nw,keep:keep,cast:CAST,vocab:vocab,modules:M};
     L.meta={}; ['author','status','updated'].forEach(k=>{ if(k in p) L.meta[k]=p[k]; });
     return L; }
 
+  // ── 10/16 협의 흐름: 들어가기 → 오늘의 어휘 → 어휘 학습(낱말마다: 생활 속 뜻 → 뜻 확인 → 용례 → 따라 읽기) → 수학적으로 말하기 → 마무리 ──
+  //    작년 초등 플로우(인트로 → 오늘의 어휘 → 목표 어휘 학습 → 수학적으로 말하기 → 교과서 맛보기)를 합치고 줄인 것. 단계 표지·갈림길·내 나라 말 표·TIP·챗봇은 쓰지 않는다.
+  const MEMO1={
+    guide:'오늘의 어휘(안내). 안내 캐릭터(퍼실리테이터)가 오늘 무엇을 하는지 한두 문장으로 알린다(10/16 협의: 억지 상황극 없이). 오늘의 낱말이 화면에 나타난다. 캐릭터는 업체가 중학교용으로 새로 그린다.',
+    pre:'오늘의 어휘(미리 확인할 말). 앞 차시({n}차시)에서 익힌 낱말을 한 번 떠올린다. 새로 가르치지 않는다. 플랫폼은 활동을 모두 해야 다음으로 넘어가므로 ‘알아요/잘 몰라요’ 갈림길 대신 카드 한 장으로 확인한다. 더 필요하면 {n}차시를 다시 보도록 안내한다.',
+    today:'오늘의 어휘(낱말 듣기). 낱말의 모양과 소리를 처음 만난다. 핵심어휘(★)는 색을 달리한다.',
+    daily:'뜻 알아보기 — 생활 속 뜻(짧은 애니메이션, 영상개발영역). ① 낱말을 조각으로 가른다 → ② 조각 낱말이 생활에서 쓰이는 장면을 보인다 → ③ 조각이 붙어 수학 낱말이 된다. 일상어로 낱말의 뜻에 익숙해지게 하는 것이 목적이다(10/16 출범식: 자주 보면 오개념이 있더라도 그 언어에 익숙해진다). 수학 개념을 새로 가르치지 않고, 푸는 방법·규칙은 말하지 않는다. 시안의 움직이는 그림은 연출을 보이려는 것이고, 실제 영상은 업체가 만든다.',
+    card:'뜻 알아보기 — 뜻 카드. 낱말을 클릭하면 뒷면에 뜻이 나온다. 한 화면에 한 가지, 설명은 두 줄 안(10/16 협의: “소인수. 소인수는 ~이에요.” 정도, 초등 4~6학년 수준).',
+    talk:'교과서 맛보기 — 용례 대화. 두 인물의 짧은 대화 속에서 교과서 꼴의 문장(색이 다른 말풍선)을 만난다. 교과서 문장을 그대로 쓰지 않고 쉽게 고쳐 쓴다(10/16 협의: 교과서와 똑같으면 난도가 너무 높다). 왼쪽은 교과서처럼 꾸민 그림. 말풍선을 누르면 읽어 준다.',
+    read:'뜻 알아보기 — 따라 읽기. 낱말과 용례 문장을 듣고 두 번 따라 읽는다(작년 초등 SB의 어휘 학습하기와 같은 방식: 낱말 카드 → 그림·영상 → 2번 따라 읽기를 낱말마다 반복).',
+    word:'연습하기 — 낱말 고르기. 문제 풀이가 아니다. 식과 그림은 이미 풀린 채로 보여 주고, 그것을 가리키는 한국어 낱말을 고른다. 보기는 오늘 익힌 낱말만 쓴다. 기회는 보기 수 − 1(최대 3번), 다 쓰면 정답을 보여 주고 넘어간다(업체 SB 규칙).',
+    hand:'연습하기 — 쓰기(손글씨). 흐리게 보이는 낱말을 손가락이나 펜으로 따라 쓴다. 핵심어휘 하나만 쓴다(10/18 결정). 중학생에게 획 따라 쓰기가 필요한지는 업체·KERIS 정책 확인 중(10/16 협의).',
+    say:'연습하기 — 말하기. 문장을 듣고 따라 말한다(원본 step_recorde).',
+    outro:'정리하기. 오늘 익힌 낱말이 모두 다시 나온다(작년 초등과 같이 콘텐츠 끝에는 배운 어휘가 다 노출됨). 문제를 풀게 하지 않고 점수도 매기지 않는다. ‘다시 볼래요’를 누르면 그 낱말의 ‘생활 속 뜻’으로 돌아간다.'};
+  const COIN_DEF=x=>x.type==='choice'?(x.say?['듣기']:['읽기']):x.type==='drag_drop'?['읽기','쓰기']:x.type==='ocr'?['쓰기']:x.type==='step_recorde'?['말하기']:
+    x.type==='listen'?(x.mode==='type'?['듣기','쓰기']:x.book?['읽기','말하기']:x.tip?['듣기']:['듣기','말하기']):x.type==='card_flip'?['읽기']:x.type==='talk'?['듣기']:x.type==='spot'?['읽기']:[];
+  function build1016(p){
+    const no=p.no, row=LESSONS[no]||{grade:'중1',title:p.title||'',std:'',std_text:''};
+    const nw=p.new, ess=p.ess||[], pre=p.pre||[], aux=p.aux||[], M=[];
+    const C=(x,memo)=>{ x=Object.assign({},x); if(!x.coin) x.coin=COIN_DEF(x); if(!x.memo&&memo) x.memo=memo; return x; };
+    // 10/19 확정 플로우: 오늘의 어휘 → 뜻 알아보기 → 교과서 맛보기 → 연습하기 → 정리하기
+    //  (업체 SB의 들어가기·오늘의 어휘 / 어휘 학습하기 / 수학적으로 말하기·수학 맛보기 / 정리와 활용에 차례로 대응)
+    // 1. 오늘의 어휘: 안내 캐릭터 → 미리 확인할 말 → 오늘 익힐 낱말 듣기
+    let s=[{type:'guide',say:p.intro_say,chips:nw,core:ess,note:p.intro_note,memo:MEMO1.guide}];
+    pre.forEach((x,i)=>{ const c=(p.pre_cards||[])[i]; if(c) s.push(C({type:'card_flip',q:p.pre_q||'앞에서 배운 낱말이에요. 낱말을 클릭해 뜻을 확인해 보세요.',front:{text:c[0]},back:c[1],answerText:c[0]},MEMO1.pre.split('{n}').join(x[1]))); });
+    s.push(C({type:'listen',q:p.today_q||'낱말을 클릭해 소리를 들어 보세요.',tip:'🔊를 누르면 낱말을 읽어 줘요.',core:ess,items:nw.map(w=>({text:w}))},MEMO1.today));
+    M.push({name:'오늘의 어휘',screens:s});
+    // 2. 뜻 알아보기: 낱말마다 생활 속 뜻(영상) → 뜻 카드 → 2번 따라 읽기 (SB ‘어휘 학습하기’처럼 한 단계 안에서 낱말을 차례로)
+    s=[]; const first=[];
+    p.words.forEach(W=>{ first.push(s.length);
+      s.push(Object.assign({type:'vod',title:'생활 속 뜻: '+W.w,cuts:W.daily,memo:W.daily_memo||MEMO1.daily},W.video?{video:W.video}:{}));
+      s.push(C({type:'card_flip',q:'낱말을 클릭해 뜻을 확인해 보세요.',front:{text:W.card[0]},back:W.card[1],answerText:W.card[0]},MEMO1.card));
+      s.push(C({type:'listen',q:'다음 낱말을 듣고 2번 따라 읽어 보세요.',items:W.read.map(x=>Array.isArray(x)?{text:x[0],say:x[1]}:{text:x})},MEMO1.read)); });
+    M.push({name:'뜻 알아보기',screens:s});
+    // 3. 교과서 맛보기: 낱말마다 용례 대화(교과서 문장) → 교과서 문제 문장 읽기(연습에 적은 book 활동을 이 단계로 옮김)
+    s=[]; p.words.forEach(W=>{ if(W.talk) s.push(C({type:'talk',q:W.talk.q||'두 친구의 대화를 들어 보세요.',board:W.talk.board||'교과서',end:W.talk.end||'색이 다른 말풍선을 눌러 교과서 문장을 다시 들어 보세요.',
+        lines:W.talk.lines.map(x=>Object.assign({who:x[0],text:x[1]},x[2]||{}))},MEMO1.talk)); });
+    p.practice.filter(x=>x.book).forEach(x=>s.push(C(x)));
+    if(s.length) M.push({name:'교과서 맛보기',screens:s});
+    // 4. 연습하기
+    M.push({name:'연습하기',screens:p.practice.filter(x=>!x.book).map(x=>C(x,x.type==='choice'?MEMO1.word:x.type==='ocr'?MEMO1.hand:x.type==='step_recorde'?MEMO1.say:null))});
+    // 5. 정리하기 (‘다시 볼래요’ → 뜻 알아보기의 그 낱말 첫 화면)
+    const wi=w=>{ const k=p.words.findIndex(W=>W.w===w); return k<0?null:[1,first[k],0]; };
+    M.push({name:'정리하기',screens:[{type:'checklist',q:p.outro_q||'오늘 익힌 낱말을 알고 있나요?',yes:'알아요',no:'다시 볼래요',say:p.outro_say,
+      allOk:p.outro_ok||'모두 익혔어요! 이제 학교 수업에서 만나요.',someNo:'‘다시 볼래요’를 누른 낱말은 한 번 더 보고 와요.',
+      items:p.summary.map(x=>({t:x[0],ex:x[2]+'\n예: '+x[1],go:'→ ‘'+x[0]+'’ 생활 속 뜻 다시 보기',jump:wi(x[0])})),note:p.outro_note,memo:MEMO1.outro}]});
+    // 어휘 표, 번역에서 빼는 낱말
+    const names={}; Object.keys(LESSONS).forEach(k=>names[k]=LESSONS[k].title);
+    const vocab={'학습 어휘 (이 차시에서 익힘)':nw.map(w=>w+(ess.includes(w)?' (필수어휘)':' (보조어휘)'))};
+    if(aux.length) vocab['함께 보는 말']=aux;
+    if(pre.length) vocab['미리 확인할 말']=pre.map(x=>x[0]+' → '+x[1]+'차시 ‘'+(names[x[1]]||'')+'’');
+    if((p.colloc||[]).length) vocab['공기관계어']=p.colloc;
+    const keep=[...new Set(nw.concat(aux,pre.map(x=>x[0]),p.keep||[]).filter(w=>w.length>=2||nw.includes(w)))].sort((a,b)=>b.length-a.length||(a<b?-1:a>b?1:0));
+    const A=String(row.std||'').split('\n'), B=String(row.std_text||'').split('\n');
+    const L={flow:'1016',skin:'sb',tries:3,tips:null,chat:null,comment:{url:REVIEW.comment,sheet:REVIEW.sheet},ask:{url:REVIEW.ask},code:'L'+String(no).padStart(2,'0'),no:no,title:p.title||row.title,grade:GRADE[row.grade]||'',
+      standard:p.std||A.map((a,i)=>a+' '+(B[i]||'')).join(' / '),unit:p.unit,lessonType:'개념 중심 차시 (10분 안팎) · 학습 어휘 '+nw.length+'개'+(pre.length?', 미리 확인할 말 '+pre.length+'개':''),
+      words:nw,keep:keep,cast:CAST,guide:p.guide_name||'안내 캐릭터',vocab:vocab,modules:M};
+    L.meta={}; ['author','status','updated'].forEach(k=>{ if(k in p) L.meta[k]=p[k]; });
+    return L; }
+  function check1016(p){
+    const err=[], warn=[];
+    const need=['no','unit','new','intro_say','words','practice','summary'];
+    const miss=need.filter(k=>!(k in p)); if(miss.length) return {err:['빠진 칸: '+miss.join(', ')],warn:warn};
+    const row=LESSONS[p.no]; if(!row) return {err:['차시 번호 '+p.no+' 가 60차시 목록에 없습니다.'],warn:warn};
+    const nw=p.new, same=(a,b)=>a.slice().sort().join('|')===b.slice().sort().join('|');
+    const texts=o=>typeof o==='string'?[o]:Array.isArray(o)?o.flatMap(texts):(o&&typeof o==='object')?Object.values(o).flatMap(texts):[];
+    if(!same(nw,row.words)) warn.push('학습 어휘가 60차시 목록과 다릅니다. ['+nw.join(', ')+'] / 목록 ['+row.words.join(', ')+']');
+    const ww=p.words.map(W=>W.w); nw.forEach(w=>{ if(!ww.includes(w)) err.push('‘'+w+'’: 어휘 학습(words)에 없습니다.');
+      if(!p.summary.some(x=>x[0]===w)) err.push('‘'+w+'’: 마무리 정리(summary)에 없습니다.'); });
+    p.words.forEach(W=>{ if(!(W.daily||[]).length) err.push('‘'+W.w+'’: 생활 속 뜻(daily) 영상이 없습니다.');
+      if(!W.card) err.push('‘'+W.w+'’: 뜻 카드(card)가 없습니다.'); if(!(W.read||[]).length) err.push('‘'+W.w+'’: 따라 읽기(read)가 없습니다.');
+      (W.daily||[]).forEach((c,i)=>{ if((c.caption||'').length>60) warn.push('‘'+W.w+'’ 생활 속 뜻 '+(i+1)+'컷: 자막이 깁니다('+c.caption.length+'자). 한 화면 한 문장(두 줄 안).'); });
+      const back=W.card&&W.card[1]; const bt=back?(back.caption||back.text||''):''; if(bt.length>40) warn.push('‘'+W.w+'’ 뜻 카드의 뜻이 깁니다('+bt.length+'자). 두 줄 안으로.'); });
+    const acts=p.practice.length; if(acts>10) err.push('연습 활동(교과서 문장 읽기 포함)이 '+acts+'개입니다. 한 묶음 10개까지(플랫폼 규칙).');
+    const coins=new Set(); p.practice.forEach(x=>(x.coin||COIN_DEF(x)).forEach(c=>coins.add(c)));
+    ['말하기','듣기','읽기','쓰기'].forEach(c=>{ if(!coins.has(c)) warn.push('교과서 맛보기·연습하기에 ‘'+c+'’ 보상 활동이 없습니다(4영역을 고루).'); });
+    if(p.practice.filter(x=>x.type==='ocr').length>1) warn.push('손글씨 따라 쓰기는 하나만(10/18 결정).');
+    (p.aux||[]).forEach(w=>{ if(texts(p).join(' ').includes(w)===false) return; });
+    ['밑','지수'].forEach(w=>{ if(texts([p.words,p.practice,p.summary]).some(t=>new RegExp('[‘\'“ ]'+w+'[’\'” 을를이은]').test(t))) warn.push('‘'+w+'’가 나옵니다. 이 차시에서는 밑·지수를 다루지 않습니다(10/18 결정).'); });
+    if(!['작성 중','검토 요청','검토 완료','샘플'].includes(p.status)) warn.push('status 는 ‘작성 중’, ‘검토 요청’, ‘검토 완료’ 가운데 하나로 적습니다(지금: '+p.status+').');
+    if(!p.author) warn.push('author(담당 선생님 이름)가 비어 있습니다.');
+    ['comment_url','comment_sheet','ask_url'].forEach(k=>{ if(p[k]) warn.push(k+'는 적지 않습니다. 검토 의견·지침 묻기 서버는 틀에 정해져 있어 모든 차시가 같이 씁니다. 이 줄을 지우세요.'); });
+    // 교과서 문제 문장 읽기(book)는 교과서 꼴(‘~하시오’)을 그대로 보여 주는 활동이라 빼고 본다
+    texts([p.words,p.practice.filter(x=>!x.book),p.summary,p.intro_say,p.intro_note]).forEach(t=>{ if(/(하|으|이|내|쓰|르|리|구하|풀|치)시오/.test(t)) warn.push('‘~하시오’ 꼴의 문장이 있습니다(교과서 문장 읽기 밖에서는 쓰지 않습니다): '+String(t).slice(0,40)); });
+    if(p.status!=='샘플'&&texts(p.words).some(t=>t.includes('나한테 사탕 6개가 있어'))) warn.push('샘플(소인수분해)의 내용이 남아 있는 것 같습니다. 차시 내용을 모두 이 차시의 것으로 바꾸세요.');
+    return {err:err,warn:warn}; }
+
   // ── 점검: 약속에 어긋나는 곳을 찾는다. {err:[오류], warn:[확인]} ──
   function check(p){
+    if(p.flow==='1016') return check1016(p);
     const err=[], warn=[];
     const need=['no','unit','new','intro_q','intro_note','school','school_s','scene','listen','define_title','define','cards','usage','talk','practice','summary','outro_note'];
     const miss=need.filter(k=>!(k in p)); if(miss.length) return {err:['빠진 칸: '+miss.join(', ')],warn:warn};
@@ -914,9 +1056,8 @@ const KIT=(function(){
     if(p.talk.lines.length>16) warn.push('용례 대화가 '+p.talk.lines.length+'마디입니다. 길지 않은지 확인하세요(샘플은 13마디).');
     if(!['작성 중','검토 요청','검토 완료','샘플'].includes(p.status)) warn.push('status 는 ‘작성 중’, ‘검토 요청’, ‘검토 완료’ 가운데 하나로 적습니다(지금: '+p.status+').');
     if(!p.author) warn.push('author(담당 선생님 이름)가 비어 있습니다.');
-    ['comment_url','comment_sheet','ask_url'].forEach(k=>{ if(p[k]) warn.push(k+'는 적지 않습니다. 검토 의견·지침 묻기 서버는 틀에 정해져 있어 모든 차시가 같이 씁니다. 이 줄을 지우세요.'); });
-    if(p.chat_url&&no!==8) warn.push('chat_url(질문하기 챗봇)은 샘플에만 둡니다. 이 줄을 지우세요.');
-    if(no!==8&&p.status!=='샘플'&&texts(p).some(t=>t.includes('아미르가 수학 발표를 준비해요'))) warn.push('샘플(소인수분해)의 내용이 남아 있는 것 같습니다. 차시 내용을 모두 이 차시의 것으로 바꿨는지 확인하세요.');
+    if(p.chat_url&&no!==7) warn.push('chat_url(질문하기 챗봇)은 샘플에만 둡니다. 이 줄을 지우세요.');
+    if(no!==7&&p.status!=='샘플'&&texts(p).some(t=>t.includes('아미르가 수학 발표를 준비해요'))) warn.push('샘플(소인수분해)의 내용이 남아 있는 것 같습니다. 차시 내용을 모두 이 차시의 것으로 바꿨는지 확인하세요.');
     return {err:err,warn:warn}; }
   function report(p){ const r=check(p), row=LESSONS[p.no]||{};
     return ['점검 결과 — '+(p.no||'?')+'차시 '+(p.title||row.title||'')+': 오류 '+r.err.length+'개, 확인 '+r.warn.length+'개'].concat(r.err.map(x=>'[오류] '+x),r.warn.map(x=>'[확인] '+x),
@@ -932,14 +1073,86 @@ if(location.hash==='#check'){ __msg(KIT.report(SPEC)); throw new Error('점검�
 let __L; try{ __L=KIT.build(SPEC); }catch(e){ __msg('차시 내용으로 화면을 만들지 못했습니다: '+e.message+'\n\n'+KIT.report(SPEC)); throw e; }
 if(location.hash==='#dump'){ __msg(JSON.stringify(__L)); throw new Error('자료만 보여 줌'); }
 const LESSON = __L;
-const TYPE_KO={opener:'단계 표지(모션그래픽)',curation:'큐레이션',checklist:'낱말 확인',recall:'낱말 정리(넣기)',lang_match:'아는 말과 연결',vod:'영상(대본)',motion:'오늘의 어휘 제시',card_flip:'카드 뒤집기',listen:'듣고 따라 읽기',drag_drop:'끌어다 빈칸에 넣기',choice:'고르기',OX:'O·X 고르기',linetoline:'선으로 잇기',input:'직접 써넣기',step_recorde:'듣고 따라 말하기',ocr:'손글씨 쓰기',talk:'용례 대화',spot:'잘못 쓴 문장 찾기',parse:'문제 한 줄 살펴보기',sort:'같은 일끼리 모으기',locate:'문제지에서 찾기'};
+const TYPE_KO={guide:'들어가기(안내 캐릭터)',opener:'단계 표지(모션그래픽)',curation:'큐레이션',checklist:'낱말 확인',recall:'낱말 정리(넣기)',lang_match:'아는 말과 연결',vod:'영상(대본)',motion:'오늘의 어휘 제시',card_flip:'카드 뒤집기',listen:'듣고 따라 읽기',drag_drop:'끌어다 빈칸에 넣기',choice:'고르기',OX:'O·X 고르기',linetoline:'선으로 잇기',input:'직접 써넣기',step_recorde:'듣고 따라 말하기',ocr:'손글씨 쓰기',talk:'용례 대화',spot:'잘못 쓴 문장 찾기',parse:'문제 한 줄 살펴보기',sort:'같은 일끼리 모으기',locate:'문제지에서 찾기'};
 let mi=0, si=0, memoOn=false;
+
+// ── 업체 SB 화면 틀(2026-10-19): 설정·다국어·보상 ──
+const SBK='vocabsb:set', RKEY='vocabrwd:'+((LESSON&&(LESSON.code||LESSON.title))||'');
+const sbset=(()=>{ const v={ml:true,voice:true,rate:.9,lang:'en'}; try{ Object.assign(v,JSON.parse(localStorage.getItem(SBK)||'{}')); }catch(e){} return v; })();
+const sbsave=()=>{ try{ localStorage.setItem(SBK,JSON.stringify(sbset)); }catch(e){} };
+// 다국어 띠: 지시문 번역(업체 SB 4쪽의 ‘다국어 부분’). ⚙ 설정에서 언어를 고르고, 🌐로 띠를 켜고 끈다.
+//  번역은 시안용 임시 번역이다(원어민 검수 전). 실제 다국어는 업체 플랫폼이 넣는다. 목록에 없는 지시문은 자리만 보여 준다.
+const ML_LANGS=[['en','English (영어)'],['zh','中文 (중국어)'],['vi','Tiếng Việt (베트남어)'],['ru','Русский (러시아어)'],['ja','日本語 (일본어)'],['mn','Монгол (몽골어)'],['uz','Oʻzbekcha (우즈베크어)'],['th','ไทย (태국어)']];
+const ML_KO=['낱말을 클릭해 뜻을 확인해 보세요.','앞에서 배운 낱말이에요. 낱말을 클릭해 뜻을 확인해 보세요.','낱말을 클릭해 소리를 들어 보세요.','다음 낱말을 듣고 2번 따라 읽어 보세요.','다음 문장을 듣고 2번 따라 읽어 보세요.',
+  '두 친구의 대화를 들어 보세요.','다음 그림에 알맞은 낱말을 선택해 보세요.','다음을 듣고 알맞은 낱말을 선택해 보세요.','보기에서 알맞은 낱말을 골라 빈칸에 넣어 보세요.','연필을 클릭해 낱말을 써 보세요.',
+  '낱말을 손글씨로 따라 써 보세요.','다음을 듣고 따라 말해 보세요.','문장을 듣고 따라 말해 보세요.','오늘 익힌 낱말을 알고 있나요?','점검해 봐요. 오늘 익힌 낱말을 알고 있나요?',
+  '오늘 만날 낱말이에요.','문장을 듣고, 빈칸에 들어갈 낱말을 써 보세요.','낱말을 듣고, 보면서 따라 써 보세요.','맞으면 O, 틀리면 X를 선택해 보세요.','알맞은 것끼리 연결해 보세요.','다음 그림에 알맞은 낱말을 연결해 보세요.'];
+const ML={
+ en:['Click the word to check its meaning.','You learned this word before. Click the word to check its meaning.','Click the word to listen to it.','Listen to the word and read it aloud twice.','Listen to the sentence and read it aloud twice.',
+  'Listen to the two friends talking.','Choose the word that matches the picture.','Listen and choose the right word.','Choose the right word from the box and put it in the blank.','Click the pencil and write the word.',
+  'Trace the word by hand.','Listen and say it after the speaker.','Listen to the sentence and say it after the speaker.','Do you know the words you learned today?','Let’s check. Do you know the words you learned today?',
+  'These are today’s words.','Listen to the sentence and write the missing word.','Listen to the word and copy it.','Choose O if it is right, or X if it is wrong.','Connect the matching pairs.','Connect each picture with the right word.'],
+ zh:['点击词语，确认它的意思。','这是之前学过的词语。点击词语，确认它的意思。','点击词语，听一听它的读音。','听下面的词语，跟着读两遍。','听下面的句子，跟着读两遍。',
+  '听一听两个朋友的对话。','选择与图片相符的词语。','听一听，选择正确的词语。','从选项中选出合适的词语，填入空格。','点击铅笔，写一写这个词语。',
+  '用手描写这个词语。','听一听，跟着说。','听句子，跟着说。','你知道今天学过的词语吗？','来检查一下。你知道今天学过的词语吗？',
+  '这是今天要学的词语。','听句子，写出空格里的词语。','听词语，看着写一写。','对的选O，错的选X。','把相配的连起来。','把图片和相符的词语连起来。'],
+ vi:['Hãy nhấp vào từ để xem nghĩa của từ.','Đây là từ em đã học trước đó. Hãy nhấp vào từ để xem nghĩa.','Hãy nhấp vào từ để nghe cách đọc.','Hãy nghe từ sau và đọc theo hai lần.','Hãy nghe câu sau và đọc theo hai lần.',
+  'Hãy nghe cuộc trò chuyện của hai bạn.','Hãy chọn từ phù hợp với hình.','Hãy nghe và chọn từ đúng.','Hãy chọn từ phù hợp trong khung và điền vào chỗ trống.','Hãy nhấp vào bút chì và viết từ.',
+  'Hãy viết theo từ bằng tay.','Hãy nghe và nói theo.','Hãy nghe câu và nói theo.','Em có biết những từ đã học hôm nay không?','Cùng kiểm tra nhé. Em có biết những từ đã học hôm nay không?',
+  'Đây là những từ hôm nay chúng ta sẽ học.','Hãy nghe câu và viết từ còn thiếu vào chỗ trống.','Hãy nghe từ rồi nhìn và viết theo.','Nếu đúng hãy chọn O, nếu sai hãy chọn X.','Hãy nối những cái phù hợp với nhau.','Hãy nối hình với từ phù hợp.'],
+ ru:['Нажмите на слово, чтобы узнать его значение.','Это слово вы уже изучали. Нажмите на слово, чтобы узнать его значение.','Нажмите на слово, чтобы послушать его.','Послушайте слово и повторите его вслух два раза.','Послушайте предложение и повторите его вслух два раза.',
+  'Послушайте разговор двух друзей.','Выберите слово, которое подходит к картинке.','Послушайте и выберите правильное слово.','Выберите подходящее слово и вставьте его в пропуск.','Нажмите на карандаш и напишите слово.',
+  'Обведите слово от руки.','Послушайте и повторите.','Послушайте предложение и повторите его.','Вы знаете слова, которые выучили сегодня?','Давайте проверим. Вы знаете слова, которые выучили сегодня?',
+  'Это слова сегодняшнего урока.','Послушайте предложение и напишите пропущенное слово.','Послушайте слово и перепишите его.','Если верно, выберите O, если неверно — X.','Соедините подходящие пары.','Соедините картинки с подходящими словами.'],
+ ja:['ことばをクリックして、意味を確かめてみましょう。','前に学んだことばです。ことばをクリックして、意味を確かめてみましょう。','ことばをクリックして、音を聞いてみましょう。','次のことばを聞いて、2回まねして読んでみましょう。','次の文を聞いて、2回まねして読んでみましょう。',
+  '二人の友だちの会話を聞いてみましょう。','次の絵に合うことばを選んでみましょう。','次を聞いて、合うことばを選んでみましょう。','ボックスから合うことばを選んで、空らんに入れてみましょう。','えんぴつをクリックして、ことばを書いてみましょう。',
+  'ことばを手書きでなぞってみましょう。','次を聞いて、まねして言ってみましょう。','文を聞いて、まねして言ってみましょう。','今日学んだことばを知っていますか。','たしかめてみましょう。今日学んだことばを知っていますか。',
+  '今日出会うことばです。','文を聞いて、空らんに入ることばを書いてみましょう。','ことばを聞いて、見ながら書いてみましょう。','正しければO、まちがっていればXを選んでみましょう。','合うものどうしをつないでみましょう。','絵に合うことばをつないでみましょう。'],
+ mn:['Үгэн дээр дарж утгыг нь шалгаарай.','Өмнө нь сурсан үг. Үгэн дээр дарж утгыг нь шалгаарай.','Үгэн дээр дарж дуудлагыг нь сонсоорой.','Дараах үгийг сонсоод хоёр удаа дагаж уншаарай.','Дараах өгүүлбэрийг сонсоод хоёр удаа дагаж уншаарай.',
+  'Хоёр найзын яриаг сонсоорой.','Зурагт тохирох үгийг сонгоорой.','Сонсоод зөв үгийг сонгоорой.','Сонголтоос тохирох үгийг сонгож хоосон зайд оруулаарай.','Харандаан дээр дарж үгийг бичээрэй.',
+  'Үгийг гараараа дагаж бичээрэй.','Сонсоод дагаж хэлээрэй.','Өгүүлбэрийг сонсоод дагаж хэлээрэй.','Өнөөдөр сурсан үгээ мэдэж байна уу?','Шалгаж үзье. Өнөөдөр сурсан үгээ мэдэж байна уу?',
+  'Өнөөдөр сурах үгс.','Өгүүлбэрийг сонсоод хоосон зайд орох үгийг бичээрэй.','Үгийг сонсоод хараад дагаж бичээрэй.','Зөв бол O, буруу бол X-г сонгоорой.','Тохирохыг нь холбоорой.','Зурагт тохирох үгийг холбоорой.'],
+ uz:['Soʻzni bosib, maʼnosini bilib oling.','Bu soʻzni avval oʻrgangansiz. Soʻzni bosib, maʼnosini bilib oling.','Soʻzni bosib, talaffuzini tinglang.','Quyidagi soʻzni tinglab, ikki marta takrorlab oʻqing.','Quyidagi gapni tinglab, ikki marta takrorlab oʻqing.',
+  'Ikki doʻstning suhbatini tinglang.','Rasmga mos soʻzni tanlang.','Tinglab, toʻgʻri soʻzni tanlang.','Variantlardan mos soʻzni tanlab, boʻsh joyga qoʻying.','Qalamni bosib, soʻzni yozing.',
+  'Soʻzni qoʻlda chizib yozing.','Tinglab, takrorlab ayting.','Gapni tinglab, takrorlab ayting.','Bugun oʻrgangan soʻzlaringizni bilasizmi?','Keling, tekshiramiz. Bugun oʻrgangan soʻzlaringizni bilasizmi?',
+  'Bugungi soʻzlar.','Gapni tinglab, boʻsh joyga mos soʻzni yozing.','Soʻzni tinglab, qarab yozing.','Toʻgʻri boʻlsa O ni, notoʻgʻri boʻlsa X ni tanlang.','Mos keladiganlarini birlashtiring.','Rasmlarni mos soʻzlar bilan birlashtiring.'],
+ th:['คลิกที่คำเพื่อดูความหมาย','เป็นคำที่เคยเรียนมาแล้ว คลิกที่คำเพื่อดูความหมาย','คลิกที่คำเพื่อฟังเสียง','ฟังคำต่อไปนี้แล้วอ่านตาม 2 ครั้ง','ฟังประโยคต่อไปนี้แล้วอ่านตาม 2 ครั้ง',
+  'ฟังบทสนทนาของเพื่อนสองคน','เลือกคำที่ตรงกับภาพ','ฟังแล้วเลือกคำที่ถูกต้อง','เลือกคำที่เหมาะสมจากตัวเลือกแล้วใส่ในช่องว่าง','คลิกที่ดินสอแล้วเขียนคำ',
+  'เขียนตามคำด้วยลายมือ','ฟังแล้วพูดตาม','ฟังประโยคแล้วพูดตาม','รู้จักคำที่เรียนวันนี้ไหม','มาตรวจสอบกัน รู้จักคำที่เรียนวันนี้ไหม',
+  'นี่คือคำที่จะได้เรียนวันนี้','ฟังประโยคแล้วเขียนคำที่หายไปในช่องว่าง','ฟังคำแล้วดูและเขียนตาม','ถ้าถูกให้เลือก O ถ้าผิดให้เลือก X','จับคู่สิ่งที่เข้ากัน','จับคู่ภาพกับคำที่ถูกต้อง']};
+const mlText=q=>{ const k=ML_KO.indexOf(plain(q).replace(/<[^>]+>/g,'').trim()); const L=ML[sbset.lang]||ML.en; return k<0?'':(L[k]||''); };
+const rwd={ get(){ try{ return JSON.parse(localStorage.getItem(RKEY)||'{}')||{}; }catch(e){ return {}; } }, set(v){ try{ localStorage.setItem(RKEY,JSON.stringify(v)); }catch(e){} }, clear(){ try{ localStorage.removeItem(RKEY); }catch(e){} } };
+const AREAS=[['말하기','👄'],['읽기','👓'],['듣기','👂'],['쓰기','✏️']], GRADED={choice:1,drag_drop:1,OX:1,linetoline:1,input:1};
+// 보상: 활동마다 한 번, 그 활동의 영역(sc.coin)에 1점씩. 정답을 맞히거나(채점 활동) 다음 페이지로 넘어갈 때(듣기·읽기·쓰기·말하기 활동) 준다.
+function award(sc,k){ if(replaying||LESSON.skin!=='sb'||!sc||!sc.coin||!sc.coin.length) return; k=k||pkey(); const r=rwd.get(); r.got=r.got||{}; if(r.got[k]) return; r.got[k]=1;
+  sc.coin.forEach(a=>{ r[a]=(r[a]||0)+1; }); r.total=(r.total||0)+sc.coin.length; rwd.set(r); const b=$('#stage .rwd'); if(b){ paintRwd(b,sc); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); } }
+function paintRwd(b,sc){ const r=rwd.get(), on=a=>sc&&sc.coin&&sc.coin.includes(a);
+  b.innerHTML='<span class="cn"><i>★</i>'+(r.total||0)+'</span><span class="ar">'+AREAS.map(([a,ic])=>'<span class="'+(on(a)?'on':'')+'" title="'+a+'">'+ic+' '+(r[a]||0)+'</span>').join('')+'</span>';
+  b.title='보상: 활동을 마치면 그 활동의 영역(말하기·읽기·듣기·쓰기) 점수가 1씩 올라요.\n밝게 보이는 영역이 이 화면의 보상 영역이에요'+(sc&&sc.coin&&sc.coin.length?'('+sc.coin.join('·')+').':'(이 화면은 보상 없음).'); }
+const triesFor=sc=>sc.tries||(LESSON.skin==='sb'&&(sc.options||[]).length>=2?Math.min(3,sc.options.length-1):LESSON.tries);   // 업체 규칙: 문제 풀이 기회 = 보기 수 − 1, 최대 3번
+function sbChrome(sc){ const st=$('#stage'), mod=LESSON.modules[mi];
+  const t=el('div','tools notranslate'), bS=el('button','','⚙'), bM=el('button',sbset.ml?'':'off','🌐'), bV=el('button','','🔊');
+  bS.title='설정(번역 언어·읽어 주기)'; bM.title='다국어: 지시문 번역 띠 '+(sbset.ml?'끄기':'켜기'); bV.title='지시문 다시 듣기';
+  bV.onclick=()=>{ if(sc.q) speak(sc.q); else if(sc.say) speak(sc.say); };
+  bM.onclick=()=>{ sbset.ml=!sbset.ml; sbsave(); render(); };
+  bS.onclick=()=>{ const o=st.querySelector('.sbpop'); if(o){ o.remove(); return; } const p=el('div','sbpop notranslate');
+    p.innerHTML='<b>설정</b><label>🌐 번역 언어 <select class="sbL">'+ML_LANGS.map(([k,n])=>'<option value="'+k+'">'+n+'</option>').join('')+'</select></label><label><input type="checkbox" class="sbM"'+(sbset.ml?' checked':'')+'> 지시문 번역 띠 보이기</label><label><input type="checkbox" class="sbV"'+(sbset.voice?' checked':'')+'> 읽어 주기(성우 음성 자리)</label><label>빠르기 <select class="sbR"><option value="0.75">느리게</option><option value="0.9">보통</option><option value="1.05">빠르게</option></select></label><small>번역은 시안용 임시 번역입니다(원어민 검수 전).<br>시안에서는 브라우저 음성으로 읽어 줍니다. 실제 설정 항목은 업체 플랫폼을 따릅니다.</small>';
+    st.append(p); const R_=p.querySelector('.sbR'), L_=p.querySelector('.sbL'); R_.value=String(sbset.rate); L_.value=sbset.lang;
+    const keep=()=>{ render(); const b=$('#stage .tools button'); if(b) b.click(); };   // 다시 그린 뒤에도 설정 창을 열어 둔다
+    L_.onchange=e=>{ sbset.lang=e.target.value; sbset.ml=true; sbsave(); keep(); };
+    p.querySelector('.sbM').onchange=e=>{ sbset.ml=e.target.checked; sbsave(); keep(); };
+    p.querySelector('.sbV').onchange=e=>{ sbset.voice=e.target.checked; sbsave(); }; R_.onchange=e=>{ sbset.rate=+e.target.value; sbsave(); }; };
+  t.append(bS,bM,bV); st.append(t);
+  const b=el('div','rwd notranslate'); paintRwd(b,sc); st.append(b);
+  if(!st.classList.contains('vvon')&&mod.screens.length>1){ const d=el('div','sbdots notranslate'); mod.screens.forEach((x,k)=>{ const o=el('button',k===si?'on':''); o.title=(k+1)+'/'+mod.screens.length+' 페이지로 가기'; o.onclick=()=>{ si=k; window.__vodScript=false; render(); }; d.append(o); }); st.append(d); }
+  const f=el('button','sbfull notranslate','⛶'); f.title='전체 화면'; f.onclick=()=>{ if(document.fullscreenElement) document.exitFullscreen(); else { const a=document.documentElement; (a.requestFullscreen||a.webkitRequestFullscreen||function(){}).call(a); } }; st.append(f);
+  st.classList.toggle('memoon',memoOn); }
 // 활동 기록: 학생이 한 활동을 이 기기의 브라우저에 화면별로 적어 둔다. 다른 화면에 갔다 오거나 새로 고쳐도 그대로 보인다. '기록 지우기'로 지운다.
 //  - 영상: 답한 컷과 보던 컷 / 끌어넣기: 빈칸에 넣은 낱말 / 그 밖의 화면: 누른 단추의 순서와 써넣은 글자(다시 그릴 때 같은 순서로 되풀이한다)
 const PKEY='vocabdone:'+((LESSON&&(LESSON.code||LESSON.title))||''); let replaying=false;
 const prog={ all(){ try{ return JSON.parse(localStorage.getItem(PKEY)||'{}')||{}; }catch(e){ return {}; } }, get(k){ return this.all()[k]; },
   set(k,v){ try{ const a=this.all(); a[k]=v; localStorage.setItem(PKEY,JSON.stringify(a)); }catch(e){} }, clear(){ try{ localStorage.removeItem(PKEY); }catch(e){} } };
-const pkey=()=>mi+'-'+si, PSEL='.opt,.chip,.btn,.cd,.card,.lgb', PSKIP={vod:1,drag_drop:1,opener:1,talk:1,spot:1,parse:1,sort:1,locate:1};
+const pkey=()=>mi+'-'+si, PSEL='.opt,.chip,.btn,.cd,.card,.lgb,.sbchk button', PSKIP={vod:1,drag_drop:1,opener:1,talk:1,spot:1,parse:1,sort:1,locate:1};
 function progInit(){ const st=$('#stage');
   st.addEventListener('click',e=>{ if(replaying||PSKIP[LESSON.modules[mi].screens[si].type]) return; const pad=st.querySelector('.pad'); if(!pad) return; const t=e.target.closest(PSEL); if(!t||!pad.contains(t)) return;
     const i=[...pad.querySelectorAll(PSEL)].indexOf(t); if(i<0) return; const v=prog.get(pkey())||{}; v.log=(v.log||[]).concat(i).slice(-300); prog.set(pkey(),v); },true);
@@ -954,7 +1167,7 @@ const KW=(LESSON.keep||LESSON.words||[]).slice().sort((a,b)=>b.length-a.length);
 const keep=t=>{ for(const w of KW) t=t.split(w).join('\u0001'+KW.indexOf(w)+'\u0002'); return t.replace(/\u0001(\d+)\u0002/g,(m,i)=>'<span class="notranslate kw" translate="no">'+KW[+i]+'</span>'); };
 const rich=t=>keep(String(t==null?'':t)).replace(/\*\*(.+?)\*\*/g,'<b class="hl">$1</b>').replace(/\n/g,'<br>');
 const plain=t=>String(t==null?'':t).replace(/\*\*/g,'').replace(/\{\d\}/g,' ');
-function speak(t,cb){ try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(plain(t)); u.lang='ko-KR'; u.rate=.9; if(cb) u.onend=cb; speechSynthesis.speak(u);}catch(e){ if(cb) cb(); } }
+function speak(t,cb){ try{ speechSynthesis.cancel(); if(LESSON.skin==='sb'&&!sbset.voice){ if(cb) cb(); return; } const u=new SpeechSynthesisUtterance(plain(t)); u.lang='ko-KR'; u.rate=LESSON.skin==='sb'?sbset.rate:.9; if(cb) u.onend=cb; speechSynthesis.speak(u);}catch(e){ if(cb) cb(); } }
 
 /* ---------- 그림: 두 직선과 한 직선 ---------- */
 const COL={A:'#ff8fb0',B:'#7db7ff',C:'#8fe0b0',D:'#ffd66b'};
@@ -1100,6 +1313,8 @@ function avatar(i){ const C=[
 function frame(q,noBar){
   const st=$('#stage'); st.innerHTML=''; st.classList.remove('isvod');
   const pad=el('div','pad full'); if(!noBar) st.append(pad);
+  if(LESSON.skin==='sb'){ if(!noBar&&q){ const bars=el('div','sbbars'); bars.append(el('div','sbq',rich(q))); if(sbset.ml){ const m=mlText(q); const mb=el('div','mlbar notranslate'+(m?'':' ph'),m||'다국어 번역 (업체 다국어 기능이 넣는 자리)'); mb.lang=sbset.lang; bars.append(mb); pad.classList.add('sbq2'); } else pad.classList.add('sbq1');
+    st.append(bars); const fs=parseFloat(getComputedStyle(st).fontSize)||16; pad.style.top=(bars.offsetTop+bars.offsetHeight+fs*.3)+'px'; } return pad; }   // 지시문이 두 줄이 되어도 카드가 띠 바로 아래에 오게 띠 높이를 잰다
   if(!noBar&&q){ const h=el('div','qin'), sp=el('button','qsp','🔊'); sp.title='물음 듣기'; sp.onclick=()=>speak(q); h.append(el('span','qm notranslate','Q'),el('span','qt',rich(q)),sp); pad.append(h); }
   return pad;
 }
@@ -1109,10 +1324,14 @@ function chrome(sc){
   p.disabled=(mi===0&&si===0); n.disabled=(mi===LESSON.modules.length-1&&si===mod.screens.length-1);
   p.onclick=()=>go(-1); n.onclick=()=>go(1); st.append(p,n);
   st.append(el('div','count notranslate',`${si+1}/${mod.screens.length}`));
-  st.append(el('div','type',sc.mode==='type'?'듣고 쓰기':(sc.type==='listen'&&sc.tip)?'듣기':(TYPE_KO[sc.type]||sc.type)));
+  st.append(el('div','type',sc.mode==='type'?'듣고 쓰기':(sc.type==='listen'&&sc.tip)?'듣기':sc.book?'교과서 문장 읽기':(TYPE_KO[sc.type]||sc.type)));
+  if(LESSON.skin==='sb') sbChrome(sc); else if(sc.coin&&sc.coin.length) st.append(el('div','coin notranslate','🪙 '+sc.coin.join('·')));
 }
-function feedback(pad){ const f=el('div','fb'); pad.append(f); return (ok,msg)=>{f.className='fb '+(ok?'ok':'no'); f.textContent=msg||(ok?'정답입니다! 잘했어요.':'다시 생각해 보세요.');}; }
-function checkRow(pad,onCheck,onReset){ const r=el('div','btnrow'); const c=el('button','btn','확인'), z=el('button','btn sub','다시'); c.onclick=onCheck; z.onclick=onReset; r.append(c,z); pad.append(r); }
+function feedback(pad){ const f=el('div','fb'); pad.append(f); return (ok,msg)=>{f.className='fb '+(ok?'ok':'no');
+  if(LESSON.skin==='sb'){ if(msg===''){ f.textContent=''; return; } const t=msg||(ok?'참 잘했어요!':'한 번 더 풀어볼까요?'); f.innerHTML='<span class="fbav notranslate">🌱</span>'; f.append(document.createTextNode(t)); if(ok) award(LESSON.modules[mi].screens[si]); return; }   // 업체 SB 5쪽: 맞으면 ‘참 잘했어요’, 틀리면 ‘한 번 더 풀어볼까요?’, 기회를 다 쓰면 ‘정답을 확인해 보세요’
+  f.textContent=msg||(ok?'정답입니다! 잘했어요.':'다시 생각해 보세요.');}; }
+function checkRow(pad,onCheck,onReset){ if(LESSON.skin==='sb'){ const r=el('div','sbchk notranslate'), z=el('button','re','↺ 다시'), c=el('button','ok','↵'); c.title='확인'; z.title='다시'; c.onclick=onCheck; z.onclick=onReset; r.append(z,c); (pad.closest('.pad')||pad).append(r); return; }
+  const r=el('div','btnrow'); const c=el('button','btn','확인'), z=el('button','btn sub','다시'); c.onclick=onCheck; z.onclick=onReset; r.append(c,z); pad.append(r); }
 function withFig(pad,sc){ // 그림이 있으면 물음은 종이 맨 위에 가로로 길게 두고, 그 바로 아래를 좌우(그림 | 보기)로 나눈다
   if(!sc.fig) return pad;
   const two=el('div','two'), l=el('div','l'), r=el('div','r'); two.append(l,r); l.append(el('div','lf',fig(sc.fig))); pad.append(two);
@@ -1121,7 +1340,35 @@ function withFig(pad,sc){ // 그림이 있으면 물음은 종이 맨 위에 가
   return r;
 }
 const R={};
-R.vod=sc=>{
+// 영상(mp4)이 있는 화면: 영상을 재생하고, 아래 컷 단추로 대본의 컷(at 초)으로 옮겨 간다. '📜 대본'을 누르면 컷 대본 보기(vodCuts)로 바뀐다.
+R.vod=sc=>{ if(!sc.video||window.__vodScript) return R.vodCuts(sc);
+  const st=$('#stage'); st.innerHTML=''; st.classList.add('isvod','vvon'); const box=el('div','vod vv'); st.append(box);
+  const at=sc.cuts.map((c,k)=>c.at!=null?c.at:k*4), n=sc.cuts.length; let ci=-1;
+  const tag=el('div','tag notranslate',''); const v=document.createElement('video'); v.className='vvid'; v.src=sc.video; v.muted=true; v.playsInline=true; v.controls=LESSON.skin!=='sb'; v.preload='auto';
+  const ctrl=el('div','ctrl vch'), sw=el('button','','📜 대본'); sw.title='컷 대본으로 보기(업체에 전하는 컷별 대본·연출 메모)'; sw.onclick=()=>{ window.__vodScript=true; window.__cut=Math.max(0,ci); render(); };
+  const SB=LESSON.skin==='sb', bt=sc.cuts.map((c,k)=>{ const b=el('button','',SB?'':'컷 '+(k+1)); b.title='컷 '+(k+1)+'로 가기'; b.onclick=()=>{ v.currentTime=at[k]+0.05; v.play().catch(()=>{}); }; return b; });
+  const info=el('div','vinfo');   // 세로 화면에서 영상 아래 빈자리에 지금 컷의 자막·대사를 보여 준다
+  let vcnt=null;
+  if(SB){ // 업체 SB 3쪽 영상개발영역: 재생·멈춤·진행 막대·시간·빠르기·소리, 아래 가운데 컷 이동 점
+    const vb=el('div','vbar notranslate'), pl=el('button','','❚❚'), sp=el('button','','■'), rg=document.createElement('input'), tm=el('span','tm',''), spd=document.createElement('select'), vol=el('button','','🔇'), dots=el('div','vdots');
+    vcnt=el('span','vcnt',''); pl.title='재생/일시 정지'; sp.title='멈춤'; vol.title='소리(영상 시안에는 소리가 없어요)'; sw.className='sw';
+    rg.type='range'; rg.min=0; rg.max=1000; rg.value=0; rg.title='재생 위치';
+    ['0.8','1.0','1.2'].forEach(x=>{ const o=document.createElement('option'); o.value=x; o.textContent='x'+x; spd.append(o); }); spd.value='1.0'; spd.title='빠르기';
+    const mm=x=>{ x=Math.floor(x||0); return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0'); };
+    const upd=()=>{ const d=v.duration||0; if(d) rg.value=Math.round(v.currentTime/d*1000); tm.innerHTML='<b>'+mm(v.currentTime)+'</b> | '+mm(d); };
+    pl.onclick=()=>{ v.paused?v.play().catch(()=>{}):v.pause(); }; sp.onclick=()=>{ v.pause(); v.currentTime=0; };
+    rg.oninput=()=>{ if(v.duration) v.currentTime=rg.value/1000*v.duration; }; spd.onchange=()=>{ v.playbackRate=+spd.value; };
+    v.addEventListener('play',()=>pl.textContent='❚❚'); v.addEventListener('pause',()=>pl.textContent='▶'); v.addEventListener('timeupdate',upd); v.addEventListener('loadedmetadata',upd);
+    dots.append(...bt); vb.append(vcnt,pl,sp,rg,tm,spd,vol,sw,dots); box.append(tag,v,vb,info); upd();
+  } else { ctrl.append(...bt,sw); box.append(tag,v,ctrl,info); }
+  const sync=()=>{ let k=0; at.forEach((a,j)=>{ if(v.currentTime+0.01>=a) k=j; }); if(k===ci) return; ci=k; tag.textContent='영상 · 컷 '+(k+1)+'/'+n; if(vcnt) vcnt.textContent=(k+1)+'/'+n; bt.forEach((b,j)=>b.classList.toggle('on',j===k)); showMemo(sc,sc.cuts[k]); vinfo(k); };
+  const vinfo=k=>{ const c=sc.cuts[k], say=(c.bubbles||[]).map(x=>LESSON.cast[x.who]+': '+x.text); info.innerHTML='<b>컷 '+(k+1)+'</b>'+(c.caption?'<div class="vc">'+rich(c.caption)+'</div>':'')+say.map(x=>'<div class="vs">'+rich(x)+'</div>').join('')+(!c.caption&&!say.length?'<div class="vs">(자막 없음 — 글자 모션그래픽)</div>':''); };
+  v.addEventListener('timeupdate',sync); v.addEventListener('seeked',sync);
+  const c0=window.__cut!=null?Math.min(n-1,window.__cut):0; window.__cut=null;
+  v.addEventListener('loadedmetadata',()=>{ if(c0) v.currentTime=at[c0]+0.05; v.play().catch(()=>{}); },{once:true});
+  chrome(sc); ci=-1; tag.textContent='영상 · 컷 '+(c0+1)+'/'+n; if(vcnt) vcnt.textContent=(c0+1)+'/'+n; bt[c0].classList.add('on'); ci=c0; showMemo(sc,sc.cuts[c0]); vinfo(c0);
+  R._cleanup=()=>{ try{ v.pause(); }catch(e){} }; return true; };
+R.vodCuts=sc=>{
   const st=$('#stage'); st.innerHTML=''; const PK=pkey(), saved=prog.get(PK)||{}, explicit=window.__cut!=null; let ci=Math.min(sc.cuts.length-1,window.__cut!=null?window.__cut:(saved.ci||0)), timer=null; window.__cut=null;
   const box=el('div','vod'); st.append(box); st.classList.add('isvod'); const done=saved.done||{};   // 참여 활동(ask)에 답한 컷 → 학생에게 돌려준 말
   const draw=()=>{
@@ -1148,7 +1395,7 @@ R.vod=sc=>{
     pb.onclick=()=>{stop(); if(ci>0){ci--;draw();}}; nb.onclick=()=>{stop(); if(ci<sc.cuts.length-1){ci++;draw();}};
     au.onclick=()=>{ if(timer){stop();draw();} else {play();draw();} };
     sp.onclick=()=>speak(open?a.q:(c.narr||(bubs.map(b=>b.text).join(' ')+' '+(c.caption||''))));
-    ctrl.append(pb,bar,nb,au,sp); box.append(ctrl); chrome(sc); showMemo(sc,c);
+    ctrl.append(pb,bar,nb,au,sp); if(sc.video){ const vb=el('button','','🎬 영상'); vb.title='영상으로 보기'; vb.onclick=()=>{ stop(); window.__vodScript=false; window.__cut=ci; render(); }; ctrl.append(vb); } box.append(ctrl); chrome(sc); showMemo(sc,c);
   };
   const stop=()=>{ if(timer){clearTimeout(timer); timer=null;} };
   // 이어 보기: 컷마다 글의 양에 맞춰 머무는 시간을 정한다(2.6초 + 글자당 0.085초, 길어도 9초). 참여 활동이 있는 컷은 답할 때까지 기다린다.
@@ -1176,9 +1423,11 @@ R.listen=sc=>{ const pad=frame(sc.q||'다음 낱말을 듣고 2번 따라 읽어
       else { tx.innerHTML=rich(it.text); box.append(b,tx,inp,mk); }
       pad.append(box); });
     pad.append(el('div','', '<span style="font-size:.8em;color:#6b7280">▶를 눌러 듣고, 빈칸에 낱말을 써 보세요. 맞게 쓰면 ✓가 생겨요.</span>')); return; }
-  items.forEach(it=>{ let n=0; const box=el('div','say'); if(items.length>1) box.style.fontSize='1.08em'; const b=el('button','round','🔊'); const dots=el('div','dots','<i></i><i></i>');
+  if(sc.book) pad.append(el('div','booklab notranslate','교과서'));
+  items.forEach(it=>{ let n=0; const core=(sc.core||[]).includes(it.text); const box=el('div','say'+(sc.book?' book':'')+(core?' core':'')); if(items.length>1) box.style.fontSize=sc.book?'1em':'1.08em'; const b=el('button','round','🔊'); const dots=el('div','dots','<i></i><i></i>');
     b.onclick=()=>{ speak(it.say||it.text,()=>{ n=Math.min(2,n+1); [...dots.children].forEach((d,i)=>d.classList.toggle('on',i<n)); }); };
-    box.append(el('span','',rich(it.text)),b,dots); pad.append(box); });
+    if(sc.tip) dots.style.display='none';
+    box.append(el('span','',(core?'<b class="star">★</b>':'')+rich(it.text)),b,dots); pad.append(box); });
   pad.append(el('div','', '<span style="font-size:.8em;color:#6b7280">'+(sc.tip||'🔊를 누르고 따라 읽으면 동그라미가 채워져요.')+'</span>')); };
 R.drag_drop=sc=>{ const pad=frame(sc.q||'보기에서 알맞은 낱말을 골라 빈칸에 넣어 보세요.'); const host=withFig(pad,sc);
   const PK=pkey(), fill=((prog.get(PK)||{}).fill||[]).slice(); const sent=el('div','sent'); sent.innerHTML=rich(sc.sentence).replace(/\{(\d)\}/g,(m,i)=>`<span class="blank" data-i="${i}"></span>`);
@@ -1188,13 +1437,20 @@ R.drag_drop=sc=>{ const pad=frame(sc.q||'보기에서 알맞은 낱말을 골라
   sc.options.forEach((o,k)=>{ const c=el('div','chip',rich(o)); c.draggable=true; c.onclick=()=>put(k); c.ondragstart=e=>e.dataTransfer.setData('text',k); chips.append(c); });
   sent.querySelectorAll('.blank').forEach(b=>{ b.onclick=()=>{fill[+b.dataset.i]=null;paint();}; b.ondragover=e=>e.preventDefault(); b.ondrop=e=>{e.preventDefault(); put(+e.dataTransfer.getData('text'),+b.dataset.i);}; });
   host.insertBefore(sent,host.lastChild); host.insertBefore(chips,host.lastChild); if(fill.length) paint();
-  checkRow(host,()=>fbk(sc.answer.every((a,i)=>fill[i]===a)),()=>{fill.length=0;paint();fbk(true,'');}); };
+  let tries=0; const T=triesFor(sc), SB=LESSON.skin==='sb';
+  checkRow(host,()=>{ const ok=sc.answer.every((a,i)=>fill[i]===a); if(ok||!T){ fbk(ok); return; } tries++;
+    if(tries>=T){ sc.answer.forEach((a,i)=>{ fill[i]=a; }); paint(); fbk(false,SB?'정답을 확인해 보세요.':'정답을 넣어 두었어요. 다음으로 넘어가요.'); autoNext(sc); return; }
+    fbk(false,SB?'한 번 더 풀어볼까요?':'다시 생각해 보세요. (기회 '+(T-tries)+'번 남음)'); },()=>{fill.length=0;paint();fbk(true,'');}); };
 R.choice=sc=>{ const pad=frame(sc.q); const host=withFig(pad,sc); const sel=new Set(); const multi=sc.answer.length>1;
   if(sc.say){ const sb=el('button','round','🔊'); sb.title='문장 듣기'; sb.style.fontSize='1.5em'; sb.onclick=()=>speak(sc.say); host.append(sb); }   /* 듣고 고르기: 문장은 보여 주지 않고 소리로만 들려준다 */
   const g=el('div','opts'); g.style.gridTemplateColumns=sc.cols?`repeat(${sc.cols},1fr)`:(sc.options.length>3&&!sc.fig?'1fr 1fr':'1fr');
   sc.options.forEach((o,k)=>{ const b=el('button','opt',o.fig?fig(o.fig):rich(o)); b.onclick=()=>{ if(!multi) sel.clear(); sel.has(k)?sel.delete(k):sel.add(k); [...g.children].forEach((c,i)=>{c.className='opt'+(sel.has(i)?' sel':'');}); }; g.append(b); });
-  host.append(g); const fbk=feedback(host);
-  checkRow(host,()=>{ const ok=sel.size===sc.answer.length&&sc.answer.every(a=>sel.has(a)); [...g.children].forEach((c,i)=>{ if(sel.has(i)) c.classList.add(sc.answer.includes(i)?'right':'wrong'); }); fbk(ok,ok?null:(sc.hint||null)); },()=>{sel.clear();[...g.children].forEach(c=>c.className='opt');fbk(true,'');}); };
+  host.append(g); const fbk=feedback(host); let tries=0;
+  checkRow(host,()=>{ const ok=sel.size===sc.answer.length&&sc.answer.every(a=>sel.has(a)); [...g.children].forEach((c,i)=>{ if(sel.has(i)) c.classList.add(sc.answer.includes(i)?'right':'wrong'); });
+    const T=triesFor(sc), SB=LESSON.skin==='sb';
+    if(ok||!T){ fbk(ok,ok?null:(sc.hint||null)); return; } tries++;
+    if(tries>=T){ [...g.children].forEach((c,i)=>{ if(sc.answer.includes(i)) c.classList.add('right'); }); fbk(false,SB?'정답을 확인해 보세요. (정답: ‘'+sc.answer.map(i=>plain(sc.options[i])).join(', ')+'’)':'정답은 ‘'+sc.answer.map(i=>plain(sc.options[i])).join(', ')+'’이에요. 다음으로 넘어가요.'); autoNext(sc); return; }
+    fbk(false,SB?'한 번 더 풀어볼까요?'+(sc.hint?' ('+plain(sc.hint)+')':''):(sc.hint?plain(sc.hint)+' ':'')+'(기회 '+(T-tries)+'번 남음)'); },()=>{sel.clear();[...g.children].forEach(c=>c.className='opt');fbk(true,'');}); };
 R.OX=sc=>{ const pad=frame(sc.q||'맞으면 O, 틀리면 X를 선택해 보세요.'); const host=withFig(pad,sc); (pad.querySelector('.two>.l')||host).append(el('div','sent',rich(sc.statement)));   /* 판단할 문장은 식 아래(왼쪽)에, O·X 단추는 오른쪽에 */
   const ox=el('div','ox'); const fbk=feedback(host); ['O','X'].forEach(v=>{ const b=el('button','opt',v); b.style.color=v==='O'?'#2f6fe4':'#e24b4b'; b.onclick=()=>{ [...ox.children].forEach(c=>c.className='opt'); const ok=v===sc.answer; b.classList.add(ok?'right':'wrong'); fbk(ok,ok?(sc.why||null):null); }; ox.append(b); });
   host.insertBefore(ox,host.lastChild); };
@@ -1207,11 +1463,11 @@ R.linetoline=sc=>{ const pad=frame(sc.q||'알맞은 것끼리 연결해 보세�
 R.input=sc=>{ const pad=frame(sc.q); const host=withFig(pad,sc); const row=el('div','sent'); const parts=rich(sc.sentence||'{0}').split('{0}'); const inp=el('input','ans'+(sc.wide?' wide':'')); inp.setAttribute('aria-label','답');
   row.innerHTML=parts[0]; row.append(inp); row.insertAdjacentHTML('beforeend',parts[1]||''); host.append(row); if(sc.help) host.append(el('div','', '<span style="font-size:.85em;color:#6b7280">'+rich(sc.help)+'</span>'));
   const fbk=feedback(host); const norm=s=>String(s).replace(/\s|°|도/g,'');
-  checkRow(host,()=>{ const ok=sc.answer.map(norm).includes(norm(inp.value)); fbk(ok,ok?null:(sc.hint||null)); },()=>{inp.value='';fbk(true,'');}); inp.onkeydown=e=>{ if(e.key==='Enter') host.querySelector('.btn').click(); }; };
+  checkRow(host,()=>{ const ok=sc.answer.map(norm).includes(norm(inp.value)); fbk(ok,ok?null:(sc.hint||null)); },()=>{inp.value='';fbk(true,'');}); inp.onkeydown=e=>{ if(e.key==='Enter') (host.closest('.pad')||host).querySelector('.sbchk .ok,.btn').click(); }; };
 R.step_recorde=sc=>{ const pad=frame(sc.q||'다음을 듣고 따라 말해 보세요.'); const host=withFig(pad,sc); const box=el('div','say col'); box.style.fontSize='1.1em'; const b=el('button','round','🔊'), r=el('button','round rec','●'); const stt=el('div','fb'); const br=el('div','btnrow');
   b.onclick=()=>speak(sc.say||sc.sentence); r.onclick=()=>{ stt.className='fb ok'; stt.textContent='녹음 중… (시안에서는 실제로 녹음하지 않아요)'; setTimeout(()=>{stt.textContent='잘 말했어요!';},2500); };
   br.append(b,r); box.append(el('span','',rich(sc.sentence)),br); host.append(box,stt); };
-R.ocr=sc=>{ const pad=frame(sc.q||'연필을 클릭해 낱말을 써 보세요.'); pad.append(el('div','ghostword notranslate',sc.word)); const cv=el('canvas','wr'); pad.append(cv);
+R.ocr=sc=>{ const pad=frame(sc.q||'연필을 클릭해 낱말을 써 보세요.'); { const gw=el('div','ghostword notranslate',sc.word); gw.style.setProperty('--n',String(sc.word).length); pad.append(gw); } const cv=el('canvas','wr'); pad.append(cv);
   const fit=()=>{ const b=cv.getBoundingClientRect(); cv.width=b.width; cv.height=b.height; }; setTimeout(fit,0); let on=false; const ctx=()=>{const c=cv.getContext('2d'); c.lineWidth=Math.max(3,cv.width/90); c.lineCap='round'; c.strokeStyle='#1d2433'; return c;};
   const pos=e=>{const b=cv.getBoundingClientRect(); return [e.clientX-b.left,e.clientY-b.top];};
   cv.onpointerdown=e=>{on=true; const c=ctx(); c.beginPath(); c.moveTo(...pos(e));}; cv.onpointermove=e=>{ if(!on) return; const c=ctx(); c.lineTo(...pos(e)); c.stroke(); c.beginPath(); c.moveTo(...pos(e)); }; window.addEventListener('pointerup',()=>on=false);
@@ -1332,7 +1588,7 @@ R.recall=sc=>{ const pad=frame(sc.q); const rc=el('div','rc'), chips=el('div','c
     rc.append(c); chip[i]=el('div','chip',rich(it.t)); chip[i].onclick=()=>{ if(!chip[i].classList.contains('used')) pick(i); }; });
   sc.items.forEach((_,i)=>chips.append(chip[(i+1)%n]));
   pad.append(rc,chips,fbk); pad.append(el('div','', '<span style="font-size:.8em;color:#6b7280">낱말을 누른 다음, 알맞은 카드를 눌러요.</span>')); };
-R.checklist=sc=>{ const pad=frame(sc.q); const box=el('div','ck'+(sc.items.length>4?' many':'')); const sum=el('div','fb');   /* 낱말이 5개 이상이면 줄을 좁혀 한 화면에 들어가게 한다 */
+R.checklist=sc=>{ const pad=frame(sc.q); if(sc.say){ const g=el('div','ckguide'); g.append(el('div','gdav notranslate',guideFace())); g.append(el('div','',rich(sc.say))); pad.append(g); } const box=el('div','ck'+(sc.items.length>4?' many':'')); const sum=el('div','fb');   /* 낱말이 5개 이상이면 줄을 좁혀 한 화면에 들어가게 한다 */
   const state=sc.items.map(()=>null);
   sc.items.forEach((it,i)=>{ const row=el('div','row'); const go=el('div','go');
     const y=el('button','btn sub',sc.yes||'알아요'), n=el('button','btn sub',sc.no||'잘 몰라요');
@@ -1397,13 +1653,32 @@ R.locate=sc=>{ const pad=frame(sc.q); const wrap=el('div','lc'), paper=el('div',
   nx.onclick=()=>{ k++; show(); };
   side.append(cnt,qd,fbk,nx); wrap.append(paper,side); pad.append(wrap); show(); };
 
+// 10/16 협의: 들어가기 — 안내 캐릭터(퍼실리테이터)가 오늘 할 일을 알리고, 오늘의 낱말이 나타난다.
+function guideFace(){ return '🌱<small>'+(LESSON.guide||'안내')+'</small>'; }
+R.guide=sc=>{ const pad=frame(null); const g=el('div','gdw'), row=el('div','gdrow'); row.append(el('div','gdav notranslate',guideFace()));
+  const b=el('div','gdb',rich(sc.say)); const sp=el('button','qsp','🔊'); sp.title='듣기'; sp.onclick=()=>speak(sc.say); b.append(sp); row.append(b); g.append(row);
+  const ch=el('div','gdchips notranslate'); (sc.chips||[]).forEach((w,i)=>{ const d=el('div',(sc.core||[]).includes(w)?'core':'',((sc.core||[]).includes(w)?'★ ':'')+w); d.style.opacity=0; d.style.transition='opacity .5s'; setTimeout(()=>{ d.style.opacity=1; },400+i*500); ch.append(d); }); g.append(ch);
+  if(sc.note) g.append(el('div','gdnote',rich(sc.note))); pad.append(g); };
+// 3번 틀린 뒤 저절로 다음 화면으로(다시 그리는 중이거나 다른 화면으로 옮겼으면 넘기지 않는다)
+function autoNext(sc){ if(replaying) return; setTimeout(()=>{ if(LESSON.modules[mi].screens[si]===sc) go(1); },2600); }
+// 기존 지시문(2025 초등 수학 콘텐츠에서 쓴 문구). 여기 없는 지시문은 ‘새로운 것’으로 표시한다. 업체 지시문 목록을 받으면 바꾼다.
+const STD_DIRS=['낱말을 클릭해 뜻을 확인해 보세요.','연필을 클릭해 낱말을 써 보세요.','다음 낱말을 듣고 2번 따라 읽어 보세요.','보기에서 알맞은 낱말을 골라 빈칸에 넣어 보세요.','그림을 클릭해 낱말을 확인해 보세요.','다음 빈칸에 들어갈 알맞은 낱말을 넣어 보세요.','다음을 듣고 따라 해 보세요.','그림을 클릭해 낱말의 뜻을 확인해 보세요.','다음 그림에 알맞은 낱말을 연결해 보세요.','다음 문장을 듣고 2번 따라 읽어 보세요.','다음을 듣고 따라 읽어 보세요.','다음을 듣고 따라 말해 보세요.','다음 빈칸에 들어갈 알맞은 낱말을 선택해 보세요.','다음 그림에 알맞은 낱말을 선택해 보세요.','알맞은 것끼리 연결해 보세요.','맞으면 O, 틀리면 X를 선택해 보세요.'];
+// 음원 세 가지(10/16 협의): 튜토리얼(안내 캐릭터) / 대사(등장인물) / 낭독(지시문·낱말·문장 읽기)
+function voices(sc,cut){ const v=[]; if(sc.q) v.push(['낭독',sc.q,3]);
+  if((sc.type==='guide'||sc.type==='checklist')&&sc.say) v.push(['튜토리얼',sc.say,1]);
+  if(sc.type==='vod'&&cut){ if(cut.narr) v.push(['튜토리얼',cut.narr,1]); (cut.bubbles||[]).forEach(b=>v.push(['대사 · '+LESSON.cast[b.who],b.text,2])); }
+  if(sc.type==='talk') sc.lines.forEach(l=>v.push(['대사 · '+LESSON.cast[l.who],l.say||l.text,2]));
+  if(sc.type==='listen') (sc.items||[]).forEach(it=>v.push(['낭독',it.say||it.text,3]));
+  if(sc.type==='step_recorde') v.push(['낭독',sc.say||sc.sentence,3]);
+  if(sc.type==='choice'&&sc.say) v.push(['낭독',sc.say,3]);
+  return v; }
 // ── 검토 의견: 지금 화면에 대한 의견을 구글 시트(차시 / 페이지 / 부분 / 외부검토위원의견 …)에 한 줄로 남긴다 ──
 const CKEY='vocabcmt:'+(LESSON.code||'');
 const cstore={ get(){ try{ return JSON.parse(localStorage.getItem(CKEY)||'{}')||{}; }catch(e){ return {}; } }, set(v){ try{ localStorage.setItem(CKEY,JSON.stringify(v)); }catch(e){} } };
-function pageLabel(){ const mod=LESSON.modules[mi], sc=mod.screens[si]; let t=(mi+1)+'-'+(si+1)+' '+mod.name+' · '+(sc.book?'교과서 문장 읽기':(TYPE_KO[sc.type]||sc.type)); const tg=$('#stage .tag'); if(sc.type==='vod'&&tg){ const m=tg.textContent.match(/컷 (\d+)\/(\d+)/); if(m) t+=' · '+m[1]+'번째 컷(전체 '+m[2]+'컷)'; } return t; }
+function pageLabel(){ const mod=LESSON.modules[mi], sc=mod.screens[si]; let t=(mi+1)+'-'+(si+1)+' '+mod.name+' · '+(sc.book?'교과서 문장 읽기':(TYPE_KO[sc.type]||sc.type)); const tg=$('#stage .tag'); if(sc.type==='vod'&&tg){ const m=tg.textContent.match(/컷 (\d+)\/(\d+)/); if(m) t+=' · '+m[1]+'번째 컷(전체 '+m[2]+'컷)'; const vd=$('#stage video'); if(vd){ const x=Math.floor(vd.currentTime||0); t+=' · 영상 '+Math.floor(x/60)+':'+String(x%60).padStart(2,'0')+' 지점'; } } return t; }
 // 부분: 번호(원 문자)는 모든 화면에서 같다. 화면 위의 어느 요소가 어느 부분인지는 sel(선택자)로 찾아 상자와 번호를 붙인다.
-const PARTS=[['화면 전체',''],['지시문','.qin,.askp .aq'],['낱말 뜻·설명','.card,.motion,.gdchips,.rc .cd,.cur,.ck .ex'],['용례(문장·대화)','.tkb,.say:not(.tp):not(.col),.sent,.sp'],
-  ['그림·영상 연출','.vod .board,.two .lf,.tkboard,.gdav,.tkav,.vod .who,.ckguide .gdav'],['대사·내레이션','.vod .bub,.vod .capt:not(.none),.gdb,.ckguide>div:last-child'],
+const PARTS=[['화면 전체',''],['지시문','.qin,.sbq,.mlbar,.askp .aq'],['낱말 뜻·설명','.card,.motion,.gdchips,.rc .cd,.cur,.ck .ex'],['용례(문장·대화)','.tkb,.say:not(.tp):not(.col),.sent,.sp'],
+  ['그림·영상 연출','.vod video,.vod .board,.two .lf,.tkboard,.gdav,.tkav,.vod .who,.ckguide .gdav'],['대사·내레이션','.vod .bub,.vod .capt:not(.none),.gdb,.ckguide>div:last-child'],
   ['활동(보기·정답)','.opts,.chips,.askp .ar,.ox,.lt,.so,.pzs,.lc,.ck'],['쓰기·말하기','canvas.wr,.ghostword,.say.tp,.say.col,.rec'],['오개념',''],['기타','']];
 const CIRC='①②③④⑤⑥⑦⑧⑨⑩';
 // 검토위원 확인: 이름으로 처음 기록할 때 비밀번호를 정하고, 다음부터는 비밀번호가 맞아야 기록·고치기를 한다. 모든 차시가 같은 서버라 비밀번호도 모든 차시에서 같다.
@@ -1592,10 +1867,13 @@ async function askSend(q){ q=String(q||'').trim(); if(!q||askBusy) return; askBu
   catch(e){ w.remove(); askMsg('a err','서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.'); }
   askBusy=false; }
 function showMemo(sc,cut){
-  const m=$('#memo'); let h=`<h3>제작 메모</h3><dl><dt>위치</dt><dd>${mi+1}. ${LESSON.modules[mi].name} · 화면 ${si+1}</dd><dt>원본 유형</dt><dd><code>${sc.type}</code> ${TYPE_KO[sc.type]||''}</dd>`;
+  const m=$('#memo'); let h=`<h3>제작 메모</h3><dl><dt>위치</dt><dd>${mi+1}. ${LESSON.modules[mi].name} · 화면 ${si+1}</dd><dt>원본 유형</dt><dd><code>${sc.type}</code> ${TYPE_KO[sc.type]||''}</dd>`+(LESSON.skin==='sb'?`<dt>개발 영역</dt><dd>${sc.type==='vod'||sc.type==='opener'?'<b>영상개발영역</b>(애니메이션) — 업체 SB 3쪽 틀':'<b>HTML개발영역</b> — 업체 SB 4쪽 틀'}</dd>`:'')+(LESSON.skin==='sb'&&GRADED[sc.type]&&(sc.options||[]).length>=2?`<dt>문제 풀이 기회</dt><dd>${triesFor(sc)}번 (보기 ${sc.options.length}개 − 1, 최대 3번)</dd>`:'');
   if(sc.q) h+=`<dt>지시문</dt><dd>${plain(sc.q)}</dd>`;
   if(sc.type==='vod'){ h+=`<dt>영상 제목</dt><dd>${sc.title||''}</dd>`; if(cut){ h+=`<dt>이 컷의 내레이션</dt><dd>${plain(cut.narr||'(대사만 있음)')}</dd>`; if(cut.dir) h+=`<dt>연출</dt><dd>${cut.dir}</dd>`; if(cut.ask) h+=`<dt>참여 활동</dt><dd>자막이 나오기 전에 멈추고 묻는다: ${plain(cut.ask.q)} [${cut.ask.options.map(plain).join(' / ')}] → ${cut.ask.answer==null?'정답 없음(어느 것을 골라도 넘어간다)':'정답 '+plain(cut.ask.options[cut.ask.answer])}</dd>`; } }
   if(sc.answerText) h+=`<dt>정답</dt><dd>${sc.answerText}</dd>`;
+  if(sc.q) h+=`<dt>지시문 확인</dt><dd>${STD_DIRS.includes(plain(sc.q))?'✓ 기존 지시문(2025 초등 콘텐츠와 같은 문구)':'<span class="newdir">★ 새로운 것 — 업체 지시문 목록과 맞춰 볼 것</span>'}</dd>`;
+  if(sc.coin) h+=`<dt>보상(코인)</dt><dd>${sc.coin.length?sc.coin.join(', '):'없음(보기만 하는 화면)'}</dd>`;
+  { const v=voices(sc,cut); if(v.length) h+=`<dt>음원</dt><dd><ul class="voice">${v.map(x=>`<li><b class="v${x[2]}">${x[0]}</b>${plain(x[1])}</li>`).join('')}</ul></dd>`; }
   if(sc.memo) h+=`<dt>메모</dt><dd>${sc.memo}</dd>`;
   m.innerHTML=h+'</dl>';
 }
@@ -1613,13 +1891,14 @@ function render(){
   if(R._cleanup){ R._cleanup(); R._cleanup=null; } try{speechSynthesis.cancel();}catch(e){}
   const mod=LESSON.modules[mi], sc=mod.screens[si];
   [...$('#toc').children].forEach((b,i)=>b.classList.toggle('on',i===mi));
+  $('#stage').classList.remove('vvon'); $('#stage').classList.toggle('sb',LESSON.skin==='sb');
   const self=(R[sc.type]||(()=>{frame('준비 중인 유형: '+sc.type);}))(sc);
   if(!self){ chrome(sc); showMemo(sc); }
   progReplay(sc);
   document.querySelectorAll('#stage .sent, #stage .chips, #stage .opts, #stage .ox, #stage .lt, #stage .say, #stage .card, #stage .motion, #stage .nav, #stage input, #stage .cur .it').forEach(e=>{e.classList.add('notranslate'); e.setAttribute('translate','no');});
   history.replaceState(null,'','#'+(mi+1)+'-'+(si+1)); if(window._chat) window._chat.where();
 }
-function go(d){ const mod=LESSON.modules[mi]; if(d>0){ if(si<mod.screens.length-1) si++; else if(mi<LESSON.modules.length-1){mi++;si=0;} } else { if(si>0) si--; else if(mi>0){mi--;si=LESSON.modules[mi].screens.length-1;} } render(); }
+function go(d){ window.__vodScript=false; const mod=LESSON.modules[mi]; { const cur=mod.screens[si]; if(d>0&&cur&&!GRADED[cur.type]) award(cur); } if(d>0){ if(si<mod.screens.length-1) si++; else if(mi<LESSON.modules.length-1){mi++;si=0;} } else { if(si>0) si--; else if(mi>0){mi--;si=LESSON.modules[mi].screens.length-1;} } render(); }
 function init(){
   window.__kitOk=true; document.title=(LESSON.code||'')+' '+LESSON.title+' · 수학 한국어 어휘 시안';
   { const r=KIT.check(SPEC), n=r.err.length+r.warn.length, b=$('#checkBtn'); b.textContent=n?'점검 '+n:'점검 ✓'; if(r.err.length) b.style.cssText='background:#ffd6d6;border-color:#d23a3a;color:#a11'; else if(n) b.style.cssText='background:#fff1b8;border-color:#c79a00'; b.onclick=showCheck; }
@@ -1629,7 +1908,7 @@ function init(){
     $('#toc').append(b); });
   $('#prevMod').onclick=()=>{ if(mi>0){mi--;si=0;render();} }; $('#nextMod').onclick=()=>{ if(mi<LESSON.modules.length-1){mi++;si=0;render();} };
   initChat(); progInit();
-  { const rb=$('#resetBtn'); let arm=0; rb.onclick=()=>{ if(!arm){ arm=1; rb.textContent='한 번 더 누르면 지워요'; setTimeout(()=>{ arm=0; rb.innerHTML='↺<span> 기록 지우기</span>'; },3000); return; } arm=0; prog.clear(); rb.innerHTML='↺<span> 기록 지우기</span>'; render(); }; }
+  { const rb=$('#resetBtn'); let arm=0; rb.onclick=()=>{ if(!arm){ arm=1; rb.textContent='한 번 더 누르면 지워요'; setTimeout(()=>{ arm=0; rb.innerHTML='↺<span> 기록 지우기</span>'; },3000); return; } arm=0; prog.clear(); rwd.clear(); rb.innerHTML='↺<span> 기록 지우기</span>'; render(); }; }
   $('#cmtBtn').onclick=openComment;
   if(LESSON.ask&&LESSON.ask.url){ $('#askBtn').style.display=''; $('#askBtn').onclick=openAsk; }
   $('#memoBtn').onclick=()=>{ memoOn=!memoOn; $('#memo').classList.toggle('on',memoOn); $('#memoBtn').classList.toggle('on',memoOn); render(); };
@@ -1655,6 +1934,5 @@ function syncLang(code){ const sel=document.getElementById('langSel'); if(sel) s
   sel.onchange=()=>setLang(sel.value); document.getElementById('langReset').onclick=()=>setLang(''); syncLang(curLang()); })();
 function googleTranslateElementInit(){ new google.translate.TranslateElement({pageLanguage:'ko',includedLanguages:'en,zh-CN,zh-TW,vi,ru,km,ja,tl,kk,mn,ar,uz,th,ne,my,id,fr,es',autoDisplay:false},'google_translate_element'); }
 </script>
-<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
 </body>
 </html>
