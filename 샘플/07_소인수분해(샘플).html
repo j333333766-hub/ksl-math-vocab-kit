@@ -81,7 +81,7 @@ const LESSON_SPEC = () => ({
   // ① 동기 유발 영상(20초 안팎): 인물이 오늘의 낱말을 처음 만나 궁금해하는 장면. 뜻은 말하지 않는다. 인물 번호 0, 1 / 안내 캐릭터 말은 자막(narr)
   motive: {
     title: '동기 유발: 무슨 뜻일까?',
-    // video: 샘플에만 있는 영상 시안. 새 차시는 video 줄 없이 컷 대본만 쓴다(영상은 업체가 만든다)
+    // video: 영상 시안(CLAUDE.md 10-1절로 만든 mp4). 기본은 video 줄 없이 컷 대본만 쓴다. 실제 영상은 업체가 만든다
     video: 'media/1-1_motive.mp4',
     cuts: [
       cut({b: [[0, '소인수분해? 거듭제곱?']], at: 0,
@@ -104,7 +104,7 @@ const LESSON_SPEC = () => ({
   // 인물 번호 0 아미르, 1 유나(임시 인물 — 업체가 중학교용 캐릭터로 바꾼다)
   words: [
     { w: '소인수분해',
-      // video: 샘플에만 있는 영상 시안(대표 교사가 만든 mp4). 새 차시는 video 줄 없이 daily 컷 대본만 쓴다(영상은 업체가 만든다). at = 영상에서 그 컷이 시작하는 초
+      // video: 영상 시안(CLAUDE.md 10-1절로 만든 mp4). 기본은 video 줄 없이 daily 컷 대본만 쓴다(실제 영상은 업체가 만든다). at = 영상에서 그 컷이 시작하는 초
       video: 'media/2-1_soinsubunhae.mp4',
       daily: [
         cut({fig: mg({t: 'split', whole: '소인수분해', parts: ['소인수', '분해']}), at: 0,
@@ -149,7 +149,7 @@ const LESSON_SPEC = () => ({
       read: ['소인수분해', ['6을 **소인수분해**하면 6 = 2 × 3입니다.', '육을 소인수분해하면 육은 이 곱하기 삼입니다.']],
     },
     { w: '거듭제곱',
-      // video: 샘플에만 있는 영상 시안(대표 교사가 만든 mp4). 새 차시는 video 줄 없이 daily 컷 대본만 쓴다(영상은 업체가 만든다). at = 영상에서 그 컷이 시작하는 초
+      // video: 영상 시안(CLAUDE.md 10-1절로 만든 mp4). 기본은 video 줄 없이 daily 컷 대본만 쓴다(실제 영상은 업체가 만든다). at = 영상에서 그 컷이 시작하는 초
       video: 'media/2-2_geodeupjegop.mp4',
       daily: [
         cut({fig: mg({t: 'split', whole: '거듭제곱', parts: ['거듭', '제곱']}), at: 0,
@@ -736,6 +736,13 @@ canvas.wr{border:.14em solid #111;border-radius:.8em;background:#fffdf2;touch-ac
 .vbar .sw{border:.1em solid #8892a6;border-radius:.4em;font-size:.85em;padding:.1em .5em;white-space:nowrap}
 .vbar .vdots{position:absolute;left:50%;transform:translateX(-50%);bottom:.15em;display:flex;gap:.4em}
 .vbar .vdots button{width:.8em;height:.8em;border-radius:50%;background:#fff;border:.1em solid #111;padding:0;font-size:1em}.vbar .vdots button.on{background:#f58a1f}
+/* 컷 대본 화면(영상 시안이 없을 때)을 영상 화면과 같은 틀로: 바탕·막대·점을 맞추고, 위 단추·오른쪽 아래 전체 화면 단추와 겹치지 않게 */
+.stage.sb .vod:not(.vv){background:linear-gradient(#d9eefc,#f3f9fe)}
+.stage.sb:not(.port) .vod:not(.vv) .scene{padding-top:3.6em}
+.stage.sb:not(.port) .vod .bub.b0,.stage.sb:not(.port) .vod .bub.b1{top:3.4em}.stage.sb:not(.port) .vod .bub.b0.low,.stage.sb:not(.port) .vod .bub.b1.low{top:calc(3.4em + 30%)}
+.stage.sb .vod .who{color:#1d2433}
+.vbar .bar{flex:1;display:flex;gap:.25em;min-width:3em}.vbar .bar i{flex:1;height:.4em;background:#fff4;border-radius:9px;cursor:pointer}.vbar .bar i.on{background:#3ba9ff}
+.vbar .cb{border:.1em solid #8892a6;border-radius:.4em;font-size:.85em;padding:.1em .5em;white-space:nowrap}
 .stage.sb.port .sbbars{left:3%;right:3%;top:3.4em}
 .stage.sb.port .pad.full{top:3.4em}
 .stage.sb.port .pad{bottom:5.7em}
@@ -1405,7 +1412,16 @@ R.vodCuts=sc=>{
     pb.onclick=()=>{stop(); if(ci>0){ci--;draw();}}; nb.onclick=()=>{stop(); if(ci<sc.cuts.length-1){ci++;draw();}};
     au.onclick=()=>{ if(timer){stop();draw();} else {play();draw();} };
     sp.onclick=()=>speak(open?a.q:(c.narr||(bubs.map(b=>b.text).join(' ')+' '+(c.caption||''))));
-    ctrl.append(pb,bar,nb,au,sp); if(sc.video){ const vb=el('button','','🎬 영상'); vb.title='영상으로 보기'; vb.onclick=()=>{ stop(); window.__vodScript=false; window.__cut=ci; render(); }; ctrl.append(vb); } box.append(ctrl); chrome(sc); showMemo(sc,c);
+    const vbtn=()=>{ const vb=el('button','','🎬 영상'); vb.title='영상으로 보기'; vb.onclick=()=>{ stop(); window.__vodScript=false; window.__cut=ci; render(); }; return vb; };
+    if(LESSON.skin==='sb'){ // 영상 화면의 재생 막대와 같은 자리·모양(쪽 수 대신 컷 수, 아래 가운데 컷 점)
+      st.classList.add('vvon'); const vb=el('div','vbar notranslate'), dots=el('div','vdots');
+      au.textContent=timer?'❚❚':'▶'; au.title=timer?'멈춤':'이어 보기'; pb.className=nb.className='cb'+(nb.classList.contains('pulse')?'':''); if(a&&!open&&ci<sc.cuts.length-1) nb.classList.add('pulse');
+      pb.textContent='◀ 컷'; pb.className='cb'; sp.title='읽어 주기';
+      [...bar.children].forEach((x,k)=>{ x.title='컷 '+(k+1); x.onclick=()=>{ stop(); ci=k; draw(); }; });
+      sc.cuts.forEach((_,k)=>{ const o=el('button',k===ci?'on':''); o.title='컷 '+(k+1)+'로 가기'; o.onclick=()=>{ stop(); ci=k; draw(); }; dots.append(o); });
+      vb.append(el('span','vcnt',(ci+1)+'/'+sc.cuts.length),au,pb,bar,nb,sp); if(sc.video){ const v2=vbtn(); v2.className='sw'; vb.append(v2); } vb.append(dots); box.append(vb);
+    } else { ctrl.append(pb,bar,nb,au,sp); if(sc.video) ctrl.append(vbtn()); box.append(ctrl); }
+    chrome(sc); showMemo(sc,c);
   };
   const stop=()=>{ if(timer){clearTimeout(timer); timer=null;} };
   // 이어 보기: 컷마다 글의 양에 맞춰 머무는 시간을 정한다(2.6초 + 글자당 0.085초, 길어도 9초). 참여 활동이 있는 컷은 답할 때까지 기다린다.

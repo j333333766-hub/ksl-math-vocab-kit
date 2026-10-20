@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>2-2 거듭제곱 — 생활 속 뜻 영상(10/20)</title>
+<!-- 영상 원본: draw(t)가 t초의 장면을 그린다. 도구/영상 만들기.ps1 이 1/30초마다 찍어 mp4로 묶는다.
+     브라우저로 그냥 열면 처음부터 재생된다(주소 끝 #8 처럼 초를 붙이면 그 초부터, ?safe 를 붙이면 화면 메뉴 자리 표시).
+     10/20: 업체 SB 등장인물(이안·아린·안나, 새 디자인 — 내부용)로 생활 장면을 다시 만들고, 글자·인물을 화면 메뉴와 겹치지 않는 가운데 영역에 둠. 내용은 10/19 판과 같음. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="../공통.css">
+<style>
+.cap b{color:#5eead4}
+.panel{width:400px;height:470px}
+.lab{font-size:40px}
+.em{font-size:110px;line-height:1}.sm{font-size:80px;line-height:1}
+.cnt{font-weight:900;font-size:40px;color:#fff;background:var(--teal);border-radius:99px;padding:4px 22px}
+.say{background:#fff;border:5px solid #1d2433;border-radius:26px;padding:6px 20px;font-weight:800;font-size:36px}
+.paper{background:#fde68a;border:5px solid #b45309;border-radius:6px;box-sizing:border-box}
+.ch.s{height:300px}
+.nb{border-color:var(--blue);color:var(--blue)}
+.eq .p{color:var(--blue)}.eq sup{font-size:.55em;vertical-align:.8em;color:var(--teal)}
+</style>
+</head>
+<body>
+<div id="v">
+  <!-- 장면 1 (0~6.6초): 거듭제곱 = 거듭 + 제곱 -->
+  <div id="s1">
+    <svg class="lines" viewBox="0 0 1920 1080"><path id="l1" d="" fill="none" stroke="#0d9488" stroke-width="8" stroke-linecap="round"/><path id="l2" d="" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round"/></svg>
+    <div class="a big" id="w"><span id="w1">거듭</span><span id="w2">제곱</span></div>
+    <div class="a card t" id="c1">거듭</div>
+    <div class="a plus" id="pl">+</div>
+    <div class="a card b" id="c2">제곱</div>
+    <div class="a eqA" id="eqA"><span style="color:var(--teal)">거듭</span><span style="color:var(--blue)">제곱</span> = <span style="color:var(--teal)">거듭</span> + <span style="color:var(--blue)">제곱</span></div>
+  </div>
+
+  <!-- 장면 2 (6.6~20초): 생활 속 ‘거듭’ — 이안이 공을 거듭 차고, 아린이 거듭 말하고, 안나가 종이를 거듭 접는다 -->
+  <div id="s2">
+    <div class="a head" id="hd">생활 속 ‘<b class="t">거듭</b>’</div>
+    <div class="a panel" id="pa"></div><div class="a panel" id="pb"></div><div class="a panel" id="pc"></div>
+    <img class="a ch s" id="ian" data-ch="10_이안(새 디자인)" alt="">
+    <div class="a em" id="goal">🥅</div><div class="a sm" id="ball">⚽</div><div class="a cnt" id="ka">1번</div>
+    <img class="a ch s" id="arin" data-ch="11_아린(새 디자인)" alt="">
+    <div class="a say" id="y0">한 번 더!</div><div class="a say" id="y1">한 번 더!</div><div class="a say" id="y2">한 번 더!</div>
+    <img class="a ch s" id="anna" data-ch="13_안나(새 디자인)" alt="">
+    <div class="a paper" id="paper"></div><div class="a cnt" id="kc">1번</div>
+    <div class="a lab" id="la"><b class="t">거듭</b> 연습해요.</div>
+    <div class="a lab" id="lb"><b class="t">거듭</b> 말해요.</div>
+    <div class="a lab" id="lc">종이를 <b class="t">거듭</b> 접어요.</div>
+  </div>
+
+  <!-- 장면 3 (20~31초): 2를 거듭 곱해요 → 거듭제곱 -->
+  <div id="s3">
+    <img class="a ch" id="ian2" data-ch="10_이안(새 디자인)" style="height:540px" alt="">
+    <div class="a bub" id="ianb" style="--tail:28%">2를 세 번 곱했어!</div>
+    <div class="a cnt" id="m0">1번</div><div class="a cnt" id="m1">2번</div><div class="a cnt" id="m2">3번</div>
+    <div class="a nb" id="n0">2</div><div class="a times" id="x0">×</div><div class="a nb" id="n1">2</div><div class="a times" id="x1">×</div><div class="a nb" id="n2">2</div>
+    <div class="a eq" id="eq"><span class="p">2</span> × <span class="p">2</span> × <span class="p">2</span> = <span class="p">2</span><sup>3</sup></div>
+    <div class="a title" id="ti"><span style="color:var(--teal)">거듭</span><span style="color:var(--blue)">제곱</span></div>
+  </div>
+
+  <div class="a cap" id="cA"><b>거듭</b> 연습해요.</div>
+  <div class="a cap" id="cB"><b>거듭</b> 말해요.</div>
+  <div class="a cap" id="cC">종이를 <b>거듭</b> 접어요.</div>
+  <div class="a cap" id="cD">‘<b>거듭</b>’은 여러 번 다시 하는 거예요.</div>
+  <div class="a cap" id="cE">2를 <b>거듭</b> 곱했어요.</div>
+  <div class="a cap" id="cF">같은 수를 <b>거듭</b> 곱한 것을 ‘<b>거듭</b><b class="b">제곱</b>’이라고 해요.</div>
+</div>
+<script src="../공통.js"></script>
+<script>
+const DUR = 31, CAPY = 850;
+const inout = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+// 같은 일을 세 번: 지금 몇 번째(0,1,2)이고 그 안에서 얼마나 했는지
+const rep3 = (t, a, step) => { const k = Math.max(0, t - a) / step; const n = Math.min(2, Math.floor(k)); return [n, t < a ? 0 : (n === 2 && k >= 3 ? 1 : k - n)]; };
+function draw(t) {
+  // ── 장면 1 (0~6.6초) ──
+  scene('s1', 1 - P(t, 6.2, 6.7));
+  { const [o, s] = pop(t, 0.3, 0.8); put('w', 960, 330, o, s);
+    const k = P(t, 1.4, 2.0); $('w1').style.color = col(INK, TEAL, k); $('w2').style.color = col(INK, BLUE, k);
+    const [o1] = pop(t, 2.0, 0.6); put('c1', 660, 620 + (1 - o1) * 80, o1);
+    const [o2] = pop(t, 2.4, 0.6); put('c2', 1260, 620 + (1 - o2) * 80, o2);
+    put('pl', 960, 620, out3(P(t, 2.7, 3.2)));
+    strokeIn('l1', 'M780 430 C 760 480, 680 500, 660 545', t, 2.9);
+    strokeIn('l2', 'M1140 430 C 1170 480, 1240 500, 1260 545', t, 3.2);
+    const [o3, s3] = pop(t, 3.9, 0.7); put('eqA', 960, 810, o3, s3); }
+  // ── 장면 2 (6.6~20초) ──
+  scene('s2', P(t, 6.6, 7.0) * (1 - P(t, 19.6, 20.1)));
+  { const X = [520, 960, 1400], Y = 485;
+    put('hd', 960, 212, out3(P(t, 6.8, 7.3)));
+    [['pa', 7.0], ['pb', 10.4], ['pc', 13.6]].forEach(([id, a], i) => { const [o, s] = pop(t, a, 0.5); put(id, X[i], Y, o, s); });
+    // ① 이안이 공을 골대로 세 번 찬다(1번, 2번, 3번)
+    { const o = out3(P(t, 7.3, 7.7)); put('ian', X[0] - 105, Y + 60, o); put('goal', X[0] + 110, Y + 70, o);
+      const [n, k] = rep3(t, 8.0, 0.7), e = inout(Math.min(1, k * 1.25));
+      put('ball', mix(X[0] - 50, X[0] + 110, e), Y + 150 - Math.sin(Math.PI * e) * 150, o * (k > 0.95 && n < 2 ? 0.3 : 1), 1, e * 540);
+      $('ka').textContent = (n + 1) + '번'; put('ka', X[0], Y - 185, out3(P(t, 8.0, 8.3)), 1 + 0.15 * Math.sin(Math.PI * Math.min(1, k * 3))); }
+    // ② 아린이 ‘한 번 더!’를 거듭 말한다
+    { const o = out3(P(t, 10.7, 11.1)); put('arin', X[1] - 105, Y + 60, o);
+      for (let i = 0; i < 3; i++) { const [oy, sy] = pop(t, 11.2 + i * 0.6, 0.4); put('y' + i, X[1] + 80, Y - 130 + i * 95, oy, sy); } }
+    // ③ 안나가 종이를 세 번 접는다(가로 → 세로 → 가로로 반씩)
+    { const o = out3(P(t, 13.9, 14.3)); put('anna', X[2] - 110, Y + 60, o);
+      const f = [P(t, 14.6, 15.1), P(t, 15.3, 15.8), P(t, 16.0, 16.5)].map(out3);
+      const w = 200 * (1 - 0.5 * f[0]) * (1 - 0.5 * f[2]), h = 150 * (1 - 0.5 * f[1]);
+      const pe = $('paper'); pe.style.width = w + 'px'; pe.style.height = h + 'px'; pe.style.background = col([253, 230, 138], [245, 158, 11], (f[0] + f[1] + f[2]) / 3);
+      put('paper', X[2] + 80, Y + 20, o);
+      const n = f[2] > 0 ? 3 : f[1] > 0 ? 2 : 1; $('kc').textContent = n + '번'; put('kc', X[2], Y - 185, out3(P(t, 14.6, 14.9))); }
+    const pulse = k => 1 + 0.08 * Math.sin(Math.PI * k);
+    put('la', X[0], 762, out3(P(t, 9.8, 10.2)), pulse(P(t, 17.6, 18.2)));
+    put('lb', X[1], 762, out3(P(t, 12.9, 13.3)), pulse(P(t, 17.9, 18.5)));
+    put('lc', X[2], 762, out3(P(t, 16.6, 17.0)), pulse(P(t, 18.2, 18.8))); }
+  // ── 장면 3 (20~31초) ──
+  scene('s3', P(t, 20.0, 20.4));
+  { { const [o, s] = pop(t, 20.2, 0.6); put('ian2', 330, 630 + bob(t), o * (1 - P(t, 25.8, 26.3)), s); }
+    put('ianb', 410, 262, fadeIO(t, 22.6, 25.6), pop(t, 22.6, 0.4)[1]);
+    const NX = [760, 1080, 1400], XX = [920, 1240], gone = 1 - P(t, 25.8, 26.3);
+    for (let i = 0; i < 3; i++) { const a = 20.4 + i * 1.0; const [o, s] = pop(t, a, 0.5); put('n' + i, NX[i], 400, o * gone, s); put('m' + i, NX[i], 245, out3(P(t, a + 0.2, a + 0.6)) * gone); if (i) { const [ox, sx] = pop(t, a - 0.2, 0.4); put('x' + (i - 1), XX[i - 1], 400, ox * gone, sx); } }
+    const [oe, se] = pop(t, 24.0, 0.6);
+    put('eq', 1080, mix(640, 400, out3(P(t, 26.0, 26.6))), oe, se);
+    const [ot, st] = pop(t, 26.4, 0.7); put('ti', 1080, 640, ot, st); }
+  // ── 자막 ──
+  put('cA', 960, CAPY, fadeIO(t, 8.0, 10.6));
+  put('cB', 960, CAPY, fadeIO(t, 11.0, 13.6));
+  put('cC', 960, CAPY, fadeIO(t, 14.2, 17.2));
+  put('cD', 960, CAPY, fadeIO(t, 17.4, 19.9));
+  put('cE', 960, CAPY, fadeIO(t, 21.0, 25.8));
+  put('cF', 960, CAPY, out3(P(t, 26.0, 26.5)));
+}
+start(draw, DUR);
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+/* 영상 원본 공통 모양(10/20~). 글자는 SAFE 영역(공통.js) 안에 둔다 */
+:root{--purple:#7c3aed;--orange:#f58a1f;--teal:#0d9488;--blue:#2563eb;--ink:#1d2433}
+html,body{margin:0;background:#000}
+#v{position:relative;width:1920px;height:1080px;overflow:hidden;background:linear-gradient(#d9eefc,#f3f9fe);font-family:"Pretendard","Malgun Gothic",sans-serif;color:var(--ink)}
+.a{position:absolute;left:0;top:0;transform-origin:50% 50%;white-space:nowrap}
+.ch{height:560px;filter:drop-shadow(0 10px 8px rgba(0,0,0,.12))}
+.big{font-weight:900;font-size:190px;letter-spacing:4px}
+.card{background:#fff;border:6px solid currentColor;border-radius:34px;padding:12px 50px;font-weight:900;font-size:110px;box-shadow:0 10px 0 rgba(0,0,0,.12)}
+.card.v{color:var(--purple)}.card.o{color:var(--orange)}.card.t{color:var(--teal)}.card.b{color:var(--blue)}
+.plus{font-weight:900;font-size:110px;color:#555}
+.eqA{font-weight:900;font-size:80px;background:#fff;border-radius:30px;padding:14px 46px;box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.cap{background:rgba(29,36,51,.92);color:#fff;font-weight:800;font-size:54px;border-radius:24px;padding:14px 44px}
+.cap b{font-weight:900;color:#fdba74}.cap b.v{color:#c4b5fd}.cap b.t{color:#5eead4}.cap b.b{color:#93c5fd}
+.cap.hi{font-size:64px;background:#7c3aed;box-shadow:0 10px 0 rgba(0,0,0,.18)}.cap.hi b{color:#fde68a}
+.head{font-weight:900;font-size:52px;background:#fff;border-radius:99px;padding:8px 38px;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.head b{color:var(--orange)}.head b.t{color:var(--teal)}
+.panel{background:#fff;border-radius:36px;box-shadow:0 10px 30px rgba(0,0,0,.1)}
+.lab{font-weight:900;font-size:44px}.lab b{color:var(--orange)}.lab b.t{color:var(--teal)}
+.bub{background:#fff;border:5px solid #1d2433;border-radius:36px;padding:16px 36px;font-weight:800;font-size:50px;line-height:1.3;box-shadow:0 8px 0 rgba(0,0,0,.1)}
+.bub b{color:var(--purple)}.bub b.o{color:var(--orange)}.bub b.t{color:var(--teal)}
+.bub::after{content:"";position:absolute;width:34px;height:34px;background:#fff;border-right:5px solid #1d2433;border-bottom:5px solid #1d2433;bottom:-21px;left:var(--tail,50%);transform:translateX(-50%) rotate(45deg)}
+.bub.up::after{bottom:auto;top:-21px;transform:translateX(-50%) rotate(225deg)}
+.nb{width:200px;height:200px;border-radius:36px;background:#fff;border:8px solid #1d2433;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:130px;box-shadow:0 12px 0 rgba(0,0,0,.15)}
+.nb.s{width:180px;height:180px;font-size:115px;color:var(--purple);border-color:var(--purple)}
+.times{font-weight:900;font-size:110px;color:#555}
+.eq{font-weight:900;font-size:110px;background:#fff;border-radius:34px;padding:6px 54px;box-shadow:0 10px 28px rgba(0,0,0,.12)}
+.eq .p{color:var(--purple)}
+.pill{font-weight:900;font-size:44px;color:#fff;border-radius:99px;padding:6px 28px;background:var(--purple)}.pill.g{background:#0f766e}
+.title{font-weight:900;font-size:110px;background:#fff;border-radius:40px;padding:8px 56px;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+svg.lines{position:absolute;left:0;top:0;width:1920px;height:1080px}

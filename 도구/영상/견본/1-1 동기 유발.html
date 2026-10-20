@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>1-1 동기 유발 — 오늘의 어휘 첫 화면 영상(10/20)</title>
+<!-- 영상 원본: draw(t)가 t초의 장면을 그린다. 도구/영상 만들기.ps1 이 1/30초마다 찍어 mp4로 묶는다.
+     브라우저로 그냥 열면 처음부터 재생된다(주소 끝 #8 처럼 초를 붙이면 그 초부터, ?safe 를 붙이면 화면 메뉴 자리 표시).
+     10/20 검토 의견 반영(오늘의 어휘 1/2 동기 유발 영상): 이안·아린이 칠판의 낯선 낱말을 보고 궁금해하고, 안내 캐릭터 초록이가 ‘조각으로 나누어 보자’고 이끈다. 뜻은 설명하지 않는다.
+     인물: 업체 SB 등장인물(이안·아린 새 디자인, 초록이) — 내부용, 업체가 중학교용 인물로 바꾼다. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="../공통.css">
+<style>
+.board{width:760px;height:380px;background:#2f5d50;border:16px solid #a86b3c;border-radius:18px;box-shadow:0 14px 30px rgba(0,0,0,.18)}
+.chalk{color:#fff;font-weight:900;font-size:92px;text-shadow:0 2px 0 rgba(0,0,0,.2)}
+.chalk.s{font-size:40px;font-weight:700;color:#d6efe6}
+.chalk .v{color:#d8c6ff}.chalk .o{color:#ffc58a}.chalk .t{color:#7ff0dd}.chalk .b{color:#a8c8ff}
+.q{font-weight:900;font-size:90px;color:#f58a1f}
+.bub2{white-space:normal;text-align:center}
+#green{height:210px}
+</style>
+</head>
+<body>
+<div id="v">
+  <div class="a board" id="bd"></div>
+  <div class="a chalk s" id="bt">오늘 만날 낱말</div>
+  <div class="a chalk" id="wa"><span id="wa1">소인수</span><span id="wgap1"></span><span id="wa2">분해</span></div>
+  <div class="a chalk" id="wb"><span id="wb1">거듭</span><span id="wgap2"></span><span id="wb2">제곱</span></div>
+  <img class="a ch" id="ian" data-ch="10_이안(새 디자인)" style="height:560px" alt="">
+  <img class="a ch" id="arin" data-ch="11_아린(새 디자인)" style="height:560px" alt="">
+  <div class="a q" id="q1">?</div><div class="a q" id="q2">?</div><div class="a q" id="q3">?</div>
+  <div class="a bub" id="b1" style="--tail:28%">소인수분해? 거듭제곱?</div>
+  <div class="a bub" id="b2" style="--tail:62%">무슨 뜻일까?</div>
+  <img class="a ch" id="green" data-ch="09_초록이(안내 캐릭터)" alt="">
+  <div class="a bub" id="b3" style="--tail:10%">긴 낱말은 조각으로<br>나누어 보면 쉬워요!</div>
+  <div class="a bub" id="b4" style="--tail:28%">좋아, 같이 알아보자!</div>
+</div>
+<script src="../공통.js"></script>
+<script>
+const DUR = 20;
+const WHITE = [255, 255, 255], LPURPLE = [216, 198, 255], LORANGE = [255, 197, 138], LTEAL = [127, 240, 221], LBLUE = [168, 200, 255];
+function draw(t) {
+  // 칠판과 낱말
+  { const [o, s] = pop(t, 0.2, 0.6); put('bd', 960, 400, o, s); put('bt', 960, 270, out3(P(t, 0.6, 1.0)));
+    const sp = out3(P(t, 11.0, 11.8)), glow = 1 + 0.06 * Math.sin(Math.PI * P(t, 16.4, 17.4));   // 조각으로 나뉨, 마지막에 한 번 반짝
+    $('wgap1').style.marginLeft = $('wgap2').style.marginLeft = (sp * 46) + 'px';
+    $('wa1').style.color = col(WHITE, LPURPLE, sp); $('wa2').style.color = col(WHITE, LORANGE, sp);
+    $('wb1').style.color = col(WHITE, LTEAL, sp); $('wb2').style.color = col(WHITE, LBLUE, sp);
+    let [oa, sa] = pop(t, 1.2, 0.6); put('wa', 960, 385, oa, sa * glow);
+    let [ob, sb] = pop(t, 1.8, 0.6); put('wb', 960, 500, ob, sb * glow); }
+  // 이안·아린
+  { const [o1, s1] = pop(t, 0.5, 0.6); put('ian', 350, 625 + bob(t), o1, s1);
+    const [o2, s2] = pop(t, 0.8, 0.6); put('arin', 1570, 625 + bob(t + 1), o2, s2);
+    [['q1', 2.8, 470, 330], ['q2', 3.1, 530, 270], ['q3', 3.4, 1440, 330]].forEach(([id, a, x, y]) => { const k = fadeIO(t, a, id === 'q3' ? 6.1 : 9.8); put(id, x, y + Math.sin((t - a) * 4) * 8, k, pop(t, a, 0.4)[1], Math.sin((t - a) * 3) * 10); }); }
+  put('b1', 470, 245, fadeIO(t, 2.6, 6.0), pop(t, 2.6, 0.4)[1]);
+  put('b2', 1500, 250, fadeIO(t, 6.2, 10.0), pop(t, 6.2, 0.4)[1]);
+  // 안내 캐릭터 초록이
+  { const [o, s] = pop(t, 10.2, 0.6); put('green', 720, 770 + Math.sin(t * 4) * 5, o, s); }
+  put('b3', 1080, 765, fadeIO(t, 10.6, 15.6), pop(t, 10.6, 0.4)[1]);
+  put('b4', 470, 245, out3(P(t, 15.9, 16.3)), pop(t, 15.9, 0.4)[1]);
+}
+start(draw, DUR);
+</script>
+</body>
+</html>

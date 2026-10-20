@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>2-1 소인수분해 — 생활 속 뜻 영상(10/20)</title>
+<!-- 영상 원본: draw(t)가 t초의 장면을 그린다. 도구/영상 만들기.ps1 이 1/30초마다 찍어 mp4로 묶는다.
+     브라우저로 그냥 열면 처음부터 재생된다(주소 끝 #8 처럼 초를 붙이면 그 초부터, ?safe 를 붙이면 화면 메뉴 자리 표시).
+     10/20 검토 의견 반영: 소인수는 학습 어휘에서 빠져 이 영상 안에서 함께 보여 준다(‘인수’라는 말은 쓰지 않음), ‘2, 3은 6의 소인수예요’를 강조하고 예를 되풀이.
+     인물: 업체 SB 등장인물 이안·아린(새 디자인) — 내부용, 업체가 중학교용 인물로 바꾼다. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="../공통.css">
+<style>
+.blk{width:70px;height:70px;border-radius:12px;border:5px solid rgba(0,0,0,.25);box-sizing:border-box}
+.em{font-size:150px;line-height:1}.pc{font-size:78px;line-height:1}
+.panel{width:330px;height:330px}
+.lab{font-size:40px}
+.eqS{font-weight:900;font-size:92px;background:#fff;border-radius:30px;padding:4px 44px;box-shadow:0 8px 22px rgba(0,0,0,.1)}
+.eqS .p{color:var(--purple)}
+.sub{font-weight:900;font-size:48px;color:var(--purple)}
+</style>
+</head>
+<body>
+<div id="v">
+  <!-- 장면 1 (0~6초): 소인수분해 = 소인수 + 분해 -->
+  <div id="s1">
+    <svg class="lines" viewBox="0 0 1920 1080"><path id="l1" d="" fill="none" stroke="#7c3aed" stroke-width="8" stroke-linecap="round"/><path id="l2" d="" fill="none" stroke="#f58a1f" stroke-width="8" stroke-linecap="round"/></svg>
+    <div class="a big" id="w"><span id="w1">소인수</span><span id="w2">분해</span></div>
+    <div class="a card v" id="c1">소인수</div>
+    <div class="a plus" id="pl">+</div>
+    <div class="a card o" id="c2">분해</div>
+    <div class="a eqA" id="eqA"><span style="color:var(--purple)">소인수</span><span style="color:var(--orange)">분해</span> = <span style="color:var(--purple)">소인수</span> + <span style="color:var(--orange)">분해</span></div>
+  </div>
+
+  <!-- 장면 2 (6~19.5초): 생활 속 ‘분해’ — 이안이 블록, 컴퓨터, 시계를 분해 -->
+  <div id="s2">
+    <img class="a ch" id="ian" data-ch="10_이안(새 디자인)" style="height:540px" alt="">
+    <div class="a bub" id="ianb" style="--tail:30%">분해해 볼까?</div>
+    <div class="a head" id="hd">생활 속 ‘<b>분해</b>’</div>
+    <div class="a panel" id="pa"></div><div class="a panel" id="pb"></div><div class="a panel" id="pc"></div>
+    <div class="a blk" id="k0" style="background:#ef4444"></div><div class="a blk" id="k1" style="background:#f59e0b"></div>
+    <div class="a blk" id="k2" style="background:#10b981"></div><div class="a blk" id="k3" style="background:#3b82f6"></div>
+    <div class="a blk" id="k4" style="background:#8b5cf6"></div><div class="a blk" id="k5" style="background:#ec4899"></div>
+    <div class="a em" id="comp">🖥️</div>
+    <div class="a pc" id="q0">⌨️</div><div class="a pc" id="q1">🖱️</div><div class="a pc" id="q2">🔩</div><div class="a pc" id="q3">💾</div>
+    <div class="a em" id="clock">⏰</div>
+    <div class="a pc" id="r0">⚙️</div><div class="a pc" id="r1">⚙️</div><div class="a pc" id="r2">🔩</div><div class="a pc" id="r3">🔋</div>
+    <div class="a lab" id="la">블록을 <b>분해</b>해요.</div>
+    <div class="a lab" id="lb">컴퓨터를 <b>분해</b>해요.</div>
+    <div class="a lab" id="lc">시계를 <b>분해</b>해요.</div>
+  </div>
+
+  <!-- 장면 3 (19.5~31초): 6 = 2 × 3, 2와 3은 소수 → 6의 소인수 -->
+  <div id="s3">
+    <img class="a ch" id="arin" data-ch="11_아린(새 디자인)" style="height:540px" alt="">
+    <div class="a bub" id="arinb" style="--tail:72%">2, 3은 6의 <b>소인수</b>!</div>
+    <div class="a nb" id="n6">6</div>
+    <div class="a nb s" id="n2">2</div><div class="a times" id="nx">×</div><div class="a nb s" id="n3">3</div>
+    <div class="a pill g" id="ps2">소수</div><div class="a pill g" id="ps3">소수</div>
+    <div class="a pill" id="pi2">소인수</div><div class="a pill" id="pi3">소인수</div>
+    <div class="a eq" id="eq">6 = <span class="p">2</span> × <span class="p">3</span></div>
+  </div>
+
+  <!-- 장면 4 (31~39초): 예를 되풀이 — 10 = 2 × 5, 15 = 3 × 5 -->
+  <div id="s4">
+    <div class="a eqS" id="eA">10 = <span class="p">2</span> × <span class="p">5</span></div>
+    <div class="a sub" id="sA">2, 5는 10의 소인수</div>
+    <div class="a eqS" id="eB">15 = <span class="p">3</span> × <span class="p">5</span></div>
+    <div class="a sub" id="sB">3, 5는 15의 소인수</div>
+  </div>
+
+  <!-- 장면 5 (39~48초): 자연수를 소인수의 곱으로 분해 = 소인수분해 -->
+  <div id="s5">
+    <div class="a eqS" id="f1">6 = <span class="p">2</span> × <span class="p">3</span></div>
+    <div class="a eqS" id="f2">10 = <span class="p">2</span> × <span class="p">5</span></div>
+    <div class="a eqS" id="f3">15 = <span class="p">3</span> × <span class="p">5</span></div>
+    <div class="a title" id="ti"><span style="color:var(--purple)">소인수</span><span style="color:var(--orange)">분해</span></div>
+  </div>
+
+  <div class="a cap" id="cA">블록을 <b>분해</b>해요.</div>
+  <div class="a cap" id="cB">컴퓨터를 <b>분해</b>해요.</div>
+  <div class="a cap" id="cC">시계를 <b>분해</b>해요.</div>
+  <div class="a cap" id="cD">‘<b>분해</b>’는 하나를 여러 조각으로 나누는 거예요.</div>
+  <div class="a cap" id="cE">2와 3은 소수예요.</div>
+  <div class="a cap hi" id="cF">2, 3은 6의 <b>소인수</b>예요.</div>
+  <div class="a cap hi" id="cG">2, 5는 10의 <b>소인수</b>예요.</div>
+  <div class="a cap hi" id="cH">3, 5는 15의 <b>소인수</b>예요.</div>
+  <div class="a cap" id="cI">자연수를 <b class="v">소인수</b>의 곱으로 <b>분해</b>해요.</div>
+  <div class="a cap" id="cJ">이것을 ‘<b class="v">소인수</b><b>분해</b>’라고 해요.</div>
+</div>
+<script src="../공통.js"></script>
+<script>
+const DUR = 48, CAPY = 838;
+function draw(t) {
+  // ── 장면 1 (0~6초) ──
+  scene('s1', 1 - P(t, 5.8, 6.3));
+  { const [o, s] = pop(t, 0.3, 0.8); put('w', 960, 330, o, s);
+    const k = P(t, 1.4, 2.0); $('w1').style.color = col(INK, PURPLE, k); $('w2').style.color = col(INK, ORANGE, k);
+    const [o1] = pop(t, 2.0, 0.6); put('c1', 640, 620 + (1 - o1) * 80, o1);
+    const [o2] = pop(t, 2.4, 0.6); put('c2', 1280, 620 + (1 - o2) * 80, o2);
+    put('pl', 960, 620, out3(P(t, 2.7, 3.2)));
+    strokeIn('l1', 'M780 430 C 760 480, 660 500, 640 545', t, 2.9);
+    strokeIn('l2', 'M1250 430 C 1265 480, 1275 500, 1280 545', t, 3.2);
+    const [o3, s3] = pop(t, 3.9, 0.7); put('eqA', 960, 810, o3, s3); }
+  // ── 장면 2 (6~19.5초) ──
+  scene('s2', P(t, 6.0, 6.4) * (1 - P(t, 19.2, 19.7)));
+  { const X = [760, 1130, 1500], Y = 470;
+    { const [o, s] = pop(t, 6.3, 0.6); put('ian', 330, 630 + bob(t), o, s); }
+    put('ianb', 400, 262, fadeIO(t, 6.8, 9.0), pop(t, 6.8, 0.4)[1]);
+    put('hd', 1130, 228, out3(P(t, 6.5, 7.0)));
+    [['pa', 6.6], ['pb', 9.8], ['pc', 13.0]].forEach(([id, a], i) => { const [o, s] = pop(t, a, 0.5); put(id, X[i], Y, o, s); });
+    const KB = [[-37, -76], [37, -76], [-37, 0], [37, 0], [-37, 76], [37, 76]], KF = [[-120, -95, -25], [118, -100, 30], [-128, 15, 15], [128, -5, -20], [-90, 105, 35], [95, 100, -30]];
+    const kb = P(t, 8.2, 9.2), kk = out3(kb);
+    KB.forEach(([x, y], i) => { const [o, s] = pop(t, 7.0 + i * 0.12, 0.4); put('k' + i, X[0] + mix(x, KF[i][0], kk), Y + mix(y, KF[i][1], kk) - Math.sin(Math.PI * kb) * 34, o, s, KF[i][2] * kk); });
+    const QS = [[-112, -85], [112, -90], [-108, 92], [112, 88]], kq = P(t, 11.3, 12.3);
+    { const [o, s] = pop(t, 10.2, 0.5); put('comp', X[1], Y, o * (1 - out3(P(t, 11.3, 11.8))), s * mix(1, 0.6, out3(kq))); }
+    QS.forEach(([dx0, dy0], i) => { const [dx, dy] = burst(kq, dx0, dy0); put('q' + i, X[1] + dx, Y + dy, out3(P(t, 11.3, 11.7)), mix(0.4, 1, out3(kq)), i % 2 ? 12 : -12); });
+    const RS = [[-112, -82], [108, -90], [-112, 92], [112, 85]], kr = P(t, 14.5, 15.5);
+    { const [o, s] = pop(t, 13.4, 0.5); put('clock', X[2], Y, o * (1 - out3(P(t, 14.5, 15.0))), s * mix(1, 0.6, out3(kr))); }
+    RS.forEach(([dx0, dy0], i) => { const [dx, dy] = burst(kr, dx0, dy0); put('r' + i, X[2] + dx, Y + dy, out3(P(t, 14.5, 14.9)), mix(0.4, 1, out3(kr)), (i % 2 ? 1 : -1) * 360 * out3(kr) * (i < 2 ? 1 : 0.1)); });
+    const pulse = k => 1 + 0.08 * Math.sin(Math.PI * k);
+    put('la', X[0], 690, out3(P(t, 9.0, 9.4)), pulse(P(t, 17.0, 17.6)));
+    put('lb', X[1], 690, out3(P(t, 12.2, 12.6)), pulse(P(t, 17.3, 17.9)));
+    put('lc', X[2], 690, out3(P(t, 15.4, 15.8)), pulse(P(t, 17.6, 18.2))); }
+  // ── 장면 3 (19.5~31초) ──
+  scene('s3', P(t, 19.5, 19.9) * (1 - P(t, 30.6, 31.0)));
+  { { const [o, s] = pop(t, 19.8, 0.6); put('arin', 1600, 630 + bob(t + 1), o, s); }
+    const [o6, s6] = pop(t, 20.0, 0.6), ks = out3(P(t, 21.5, 22.4));
+    put('n6', 860, 420, o6 * (1 - P(t, 21.5, 21.8)), s6 * mix(1, 1.12, P(t, 21.0, 21.5)), Math.sin(t * 40) * 3 * (t > 21.0 && t < 21.5 ? 1 : 0));
+    put('n2', mix(860, 640, ks), 420, out3(P(t, 21.5, 21.8)), mix(0.6, 1, ks), -6 * (1 - ks));
+    put('n3', mix(860, 1080, ks), 420, out3(P(t, 21.5, 21.8)), mix(0.6, 1, ks), 6 * (1 - ks));
+    const [ox, sx] = pop(t, 22.2, 0.4); put('nx', 860, 420, ox, sx);
+    const [op, sp] = pop(t, 23.0, 0.5), gone = 1 - P(t, 25.8, 26.2);
+    put('ps2', 640, 262, op * gone, sp); put('ps3', 1080, 262, op * gone, sp);
+    const [oi, si] = pop(t, 26.0, 0.5); put('pi2', 640, 262, oi, si); put('pi3', 1080, 262, oi, si);
+    const [oe, se] = pop(t, 24.0, 0.6); put('eq', 860, 655, oe, se);
+    put('arinb', 1450, 270, fadeIO(t, 27.0, 30.5), pop(t, 27.0, 0.4)[1]); }
+  // ── 장면 4 (31~39초) ──
+  scene('s4', P(t, 31.0, 31.3) * (1 - P(t, 38.8, 39.2)));
+  { let [o, s] = pop(t, 31.4, 0.6); put('eA', 640, 430, o, s);
+    put('sA', 640, 590, out3(P(t, 32.2, 32.7)), pop(t, 32.2, 0.5)[1]);
+    [o, s] = pop(t, 35.0, 0.6); put('eB', 1280, 430, o, s);
+    put('sB', 1280, 590, out3(P(t, 35.8, 36.3)), pop(t, 35.8, 0.5)[1]); }
+  // ── 장면 5 (39~48초) ──
+  scene('s5', P(t, 39.0, 39.4));
+  { const sh = out3(P(t, 43.4, 44.0));
+    [['f1', 39.4, 330], ['f2', 39.9, 490], ['f3', 40.4, 650]].forEach(([id, a, y]) => { const [o, s] = pop(t, a, 0.5); put(id, mix(960, 640, sh), y, o, s); });
+    const [ot, st] = pop(t, 43.8, 0.7); put('ti', 1330, 490, ot, st); }
+  // ── 자막 ──
+  put('cA', 960, CAPY, fadeIO(t, 7.4, 10.2));
+  put('cB', 960, CAPY, fadeIO(t, 10.6, 13.4));
+  put('cC', 960, CAPY, fadeIO(t, 13.8, 16.6));
+  put('cD', 960, CAPY, fadeIO(t, 16.8, 19.4));
+  put('cE', 960, CAPY, fadeIO(t, 23.0, 25.9));
+  put('cF', 960, CAPY, fadeIO(t, 26.2, 30.7), 1 + 0.04 * Math.sin(Math.PI * P(t, 26.4, 27.2)));
+  put('cG', 960, CAPY, fadeIO(t, 32.4, 35.0));
+  put('cH', 960, CAPY, fadeIO(t, 36.0, 38.9));
+  put('cI', 960, CAPY, fadeIO(t, 40.6, 43.7));
+  put('cJ', 960, CAPY, out3(P(t, 44.0, 44.5)));
+}
+start(draw, DUR);
+</script>
+</body>
+</html>
