@@ -67,7 +67,7 @@ const LESSON_SPEC = () => ({
   flow: '1016',   // 화면 흐름(10/19 확정 플로우). 모든 차시가 이 값을 쓴다. 바꾸지 않는다
   // ── 기본 정보 ─────────────────────────────────────────────
   no: 7,
-  author: '조창현', status: '샘플', updated: '2026-10-20',
+  author: '조창현', status: '샘플', updated: '2026-10-20', version: 1,   // version: 버전(1, 2, 3 …). 검토를 받은 뒤 고치면 새 파일(_v2)로 올린다(CLAUDE.md 9절)
   unit: '중학교 1학년 · ‘소인수분해’ 소단원을 배우기 전에 보는 콘텐츠',
   new: ['소인수분해', '거듭제곱'],   // 학습 어휘(60차시 목록과 같게)
   ess: ['소인수분해'],               // 필수어휘(★)
@@ -659,7 +659,7 @@ canvas.wr{border:.14em solid #111;border-radius:.8em;background:#fffdf2;touch-ac
 .cmtp .lh{display:flex;align-items:center;gap:8px;margin-bottom:5px}.cmtp .lh b{flex:1}
 .cmtp .it{border:1px solid #e3e7ee;border-radius:8px;padding:6px 8px;margin-top:5px;background:#fafbfd}.cmtp .it.on{border-color:#f5b400;background:#fff7e0}
 .cmtp .it .pg{border:0;background:none;padding:0;font:inherit;font-size:12px;font-weight:800;color:#1e56b8;text-align:left;cursor:pointer;text-decoration:underline}
-.cmtp .it .ip{font-size:12px;font-weight:700;color:#e8457a}.cmtp .it .tm{color:#9aa3b2;font-weight:400;margin-left:6px}
+.cmtp .it .ip{font-size:12px;font-weight:700;color:#e8457a}.cmtp .vt{display:inline-block;background:#eef2ff;color:#3b4cca;border-radius:6px;padding:0 5px;margin-right:5px;font-weight:700}.cmtp .rs{display:inline-block;background:#e3f4e1;color:#2f6b2a;border-radius:6px;padding:0 5px;margin-left:5px;font-weight:700}.cmtp .vnote{font-size:12px;color:#5b6475;background:#f6f7fb;border-radius:8px;padding:6px 8px;margin-top:6px}.cmtp .it .tm{color:#9aa3b2;font-weight:400;margin-left:6px}
 .cmtp .it .io{white-space:pre-wrap;font-size:13px;margin:2px 0 3px;color:#1d2433}
 .cmtp .ctabs{display:flex;gap:4px;margin:2px 0 4px}.cmtp .ctabs button{flex:1;border:1px solid #cfd5df;background:#fff;border-radius:8px;padding:6px 4px;font:inherit;font-size:13px;font-weight:800;color:#5b6b8c;cursor:pointer}.cmtp .ctabs button.on{background:#1e56b8;border-color:#1e56b8;color:#fff}.cmtp .ctabs button.g.on{background:#7c3aed;border-color:#7c3aed}
 .cmtp .ginfo{font-size:12px;color:#5b21b6;background:#f5f3ff;border-radius:8px;padding:6px 9px;margin-top:6px;line-height:1.5}.cmtp .it .st{display:inline-block;font-size:11px;font-weight:800;border-radius:6px;padding:0 6px;margin-left:6px;background:#eef0f4;color:#374151}.cmtp .it .st.s1{background:#dcfce7;color:#166534}.cmtp .it .st.s2{background:#fee2e2;color:#991b1b}.cmtp .it .st.s3{background:#e0e7ff;color:#3730a3}.cmtp .it .mm{font-size:12px;color:#5b21b6;margin-bottom:3px}
@@ -790,6 +790,8 @@ const KIT=(function(){
   const REVIEW={comment:'https://script.google.com/macros/s/AKfycbyyVQ9bYSSTL5T0yYCiYR_xMSjfuE04w0ZHRJoC4DZLVoZPCOn9E2EVxwMrGGSf3OZlew/exec',
     sheet:'https://docs.google.com/spreadsheets/d/1eIOEVhjYTogAEFeZJe3kG7yS8dbNx2yjwDJeqonQEyk/edit?usp=sharing',
     ask:'https://script.google.com/macros/s/AKfycbwB6R5cWqCF7lY8wBxwsEtu45AKvTrceFa9mjPvFSCPKfHWmh8NpN10yzFiXTdPrbiL/exec'};
+  // 버전: 차시 내용의 version(1, 2, 3 …). 없으면 1. 화면과 검토 의견 시트에 v1, v2 …로 보인다
+  const verNo=p=>{ const n=parseInt(String(p.version==null?1:p.version).replace(/^v/i,''),10); return n>0?n:1; };
   const CAST=['아미르','유나'];                                             // 인물 0, 인물 1 (임시 이름·임시 그림)
   const LANG6=['English','中文','日本語','Tiếng Việt','Русский','العربية'];   // lang 의 줄 순서
   const GRADE={'공통':'중학교 1~2학년 공통','중1':'중학교 1학년','중2':'중학교 2학년'};
@@ -924,7 +926,7 @@ const KIT=(function(){
     const L={tips:task&&TIPS.task_stages?{stages:TIPS.task_stages,common:TIPS.task_common,egLabel:'예: 1차시(구하기)에서는'}:{stages:TIPS.stages,common:TIPS.common},chat:chat,comment:{url:REVIEW.comment,sheet:REVIEW.sheet},ask:{url:REVIEW.ask},code:'L'+String(no).padStart(2,'0'),no:no,title:p.title||row.title,grade:GRADE[row.grade]||'',standard:std,unit:p.unit,
       lessonType:(task?'수행어 차시(문제에서 쓰는 말)':'개념 중심 차시')+' (10분 안팎) · 새 어휘 '+nw.length+'개'+(pre.length?', 미리 확인할 말 '+pre.length+'개':'')+(elem.length?', 초등에서 배운 말 안내 '+elem.length+'개':''),
       words:nw,keep:keep,cast:CAST,vocab:vocab,modules:M};
-    L.meta={}; ['author','status','updated'].forEach(k=>{ if(k in p) L.meta[k]=p[k]; });
+    L.meta={}; ['author','status','updated','version'].forEach(k=>{ if(k in p) L.meta[k]=p[k]; }); L.version='v'+verNo(p);
     return L; }
 
   // ── 10/16 협의 흐름: 들어가기 → 오늘의 어휘 → 어휘 학습(낱말마다: 생활 속 뜻 → 뜻 확인 → 용례 → 따라 읽기) → 수학적으로 말하기 → 마무리 ──
@@ -986,7 +988,7 @@ const KIT=(function(){
     const L={flow:'1016',skin:'sb',tries:3,tips:null,chat:null,comment:{url:REVIEW.comment,sheet:REVIEW.sheet},ask:{url:REVIEW.ask},code:'L'+String(no).padStart(2,'0'),no:no,title:p.title||row.title,grade:GRADE[row.grade]||'',
       standard:p.std||A.map((a,i)=>a+' '+(B[i]||'')).join(' / '),unit:p.unit,lessonType:'개념 중심 차시 (10분 안팎) · 학습 어휘 '+nw.length+'개'+(pre.length?', 미리 확인할 말 '+pre.length+'개':''),
       words:nw,keep:keep,cast:CAST,guide:p.guide_name||'안내 캐릭터',vocab:vocab,modules:M};
-    L.meta={}; ['author','status','updated'].forEach(k=>{ if(k in p) L.meta[k]=p[k]; });
+    L.meta={}; ['author','status','updated','version'].forEach(k=>{ if(k in p) L.meta[k]=p[k]; }); L.version='v'+verNo(p);
     return L; }
   function check1016(p){
     const err=[], warn=[];
@@ -1010,6 +1012,11 @@ const KIT=(function(){
     ['밑','지수'].forEach(w=>{ if(texts([p.words,p.practice,p.summary]).some(t=>new RegExp('[‘\'“ ]'+w+'[’\'” 을를이은]').test(t))) warn.push('‘'+w+'’가 나옵니다. 이 차시에서는 밑·지수를 다루지 않습니다(10/18 결정).'); });
     if(!['작성 중','검토 요청','검토 완료','샘플'].includes(p.status)) warn.push('status 는 ‘작성 중’, ‘검토 요청’, ‘검토 완료’ 가운데 하나로 적습니다(지금: '+p.status+').');
     if(!p.author) warn.push('author(담당 선생님 이름)가 비어 있습니다.');
+    if(!('version' in p)) warn.push('version(버전)이 없습니다. author 줄에 version: 1 처럼 적습니다(지금은 v1로 봅니다).');
+    else if(!/^v?\d+$/i.test(String(p.version))) err.push('version 은 1, 2, 3 처럼 수로 적습니다(지금: '+p.version+').');
+    { const fn=typeof location!=='undefined'?decodeURIComponent(location.pathname.split('/').pop()):'', fm=fn.match(/_v(\d+)\.html$/i);
+      if(fm&&+fm[1]!==verNo(p)) err.push('파일 이름은 _v'+fm[1]+' 인데 차시 내용의 version 은 '+verNo(p)+' 입니다. 둘을 같게 맞춥니다.');
+      else if(!fm&&p.status!=='샘플'&&/\.html$/i.test(fn)) warn.push('파일 이름 끝에 버전을 붙입니다(예: '+fn.replace(/\.html$/i,'')+'_v'+verNo(p)+'.html). CLAUDE.md 9절.'); }
     ['intro_note','outro_note','today_q'].forEach(k=>{ if(p[k]) warn.push(k+'는 10/20 검토 의견 반영으로 쓰지 않습니다(화면에 설명 문장·낱말 듣기 화면을 두지 않음). 이 줄을 지우세요.'); });
     if(!p.motive) warn.push('동기 유발 영상(motive)이 없습니다. 오늘의 어휘 첫 화면은 20초 안팎의 동기 유발 영상입니다(샘플의 motive 참고).');
     ['comment_url','comment_sheet','ask_url'].forEach(k=>{ if(p[k]) warn.push(k+'는 적지 않습니다. 검토 의견·지침 묻기 서버는 틀에 정해져 있어 모든 차시가 같이 씁니다. 이 줄을 지우세요.'); });
@@ -1073,6 +1080,11 @@ const KIT=(function(){
     if(p.talk.lines.length>16) warn.push('용례 대화가 '+p.talk.lines.length+'마디입니다. 길지 않은지 확인하세요(샘플은 13마디).');
     if(!['작성 중','검토 요청','검토 완료','샘플'].includes(p.status)) warn.push('status 는 ‘작성 중’, ‘검토 요청’, ‘검토 완료’ 가운데 하나로 적습니다(지금: '+p.status+').');
     if(!p.author) warn.push('author(담당 선생님 이름)가 비어 있습니다.');
+    if(!('version' in p)) warn.push('version(버전)이 없습니다. author 줄에 version: 1 처럼 적습니다(지금은 v1로 봅니다).');
+    else if(!/^v?\d+$/i.test(String(p.version))) err.push('version 은 1, 2, 3 처럼 수로 적습니다(지금: '+p.version+').');
+    { const fn=typeof location!=='undefined'?decodeURIComponent(location.pathname.split('/').pop()):'', fm=fn.match(/_v(\d+)\.html$/i);
+      if(fm&&+fm[1]!==verNo(p)) err.push('파일 이름은 _v'+fm[1]+' 인데 차시 내용의 version 은 '+verNo(p)+' 입니다. 둘을 같게 맞춥니다.');
+      else if(!fm&&p.status!=='샘플'&&/\.html$/i.test(fn)) warn.push('파일 이름 끝에 버전을 붙입니다(예: '+fn.replace(/\.html$/i,'')+'_v'+verNo(p)+'.html). CLAUDE.md 9절.'); }
     if(p.chat_url&&no!==7) warn.push('chat_url(질문하기 챗봇)은 샘플에만 둡니다. 이 줄을 지우세요.');
     if(no!==7&&p.status!=='샘플'&&texts(p).some(t=>t.includes('아미르가 수학 발표를 준비해요'))) warn.push('샘플(소인수분해)의 내용이 남아 있는 것 같습니다. 차시 내용을 모두 이 차시의 것으로 바꿨는지 확인하세요.');
     return {err:err,warn:warn}; }
@@ -1735,7 +1747,7 @@ function openComment(){ const p=$('#cmtp'); if(cmtOn()){ closeComment(); return;
     const sh=LESSON.comment&&LESSON.comment.sheet;
     p.innerHTML='<div class="hd"><h2>💬 검토 의견</h2>'+(sh?'<a class="shl" href="'+cesc(sh)+'" target="_blank" rel="noopener" title="기록된 의견을 구글 시트에서 봐요(보기 전용)">📄 시트 보기</a>':'')+'<button class="x" id="cmtX" title="닫기">✕</button></div>'
       +'<div class="ctabs" id="cmtTabs"><button type="button" data-m="page" class="on">🖥 이 화면 의견</button><button type="button" data-m="all" class="g">📚 전체 지침 의견</button></div>'
-      +'<div id="cmtWhere"><label>차시</label><div class="ro" id="cmtLesson"></div><label>페이지</label><div class="ro" id="cmtPage"></div></div>'
+      +'<div id="cmtWhere"><label>차시 · 버전</label><div class="ro" id="cmtLesson"></div><label>페이지</label><div class="ro" id="cmtPage"></div></div>'
       +'<div class="ginfo" id="gInfo" style="display:none">특정 차시가 아니라 <b>집필진 모두</b>에게 하는 의견이에요(예: 정의는 한 문장으로, 이런 낱말은 피하기). ‘전체 지침 의견’ 시트에 따로 기록되고, 대표 교사가 확정하면 모든 차시의 제작·수정에 반영돼요.</div>'
       +'<div id="cmtAuth"></div>'
       +'<div id="cmtForm"><div class="editing" id="cmtEditing"></div>'
@@ -1766,7 +1778,7 @@ function cmtAuthDraw(){ const a=cauth.get(), box=$('#cmtAuth'), s=cstore.get();
   cmtShow();
   if(a){ box.innerHTML='<div class="cwho">👤 <b>'+cesc(a.name)+'</b><button type="button" class="lnk2" id="cmtOut">다른 이름으로</button></div>'; $('#cmtOut').onclick=()=>{ cauth.set(null); citems=[]; cstep='name'; cmtStopEdit(); cmtAuthDraw(); }; if(innerWidth>900) setTimeout(()=>$('#cmtText').focus(),50); return; }
   const nm=cesc(s.name||'');
-  if(cstep==='name') box.innerHTML='<label for="cmtName">이름(검토위원)</label><div class="r"><input id="cmtName" placeholder="예: 김○○ 교수" value="'+nm+'"><button id="cmtNext">다음</button></div><div class="msg" id="cmtAMsg"></div>';
+  if(cstep==='name') box.innerHTML='<label for="cmtName">이름(검토위원)</label><div class="r"><input id="cmtName" placeholder="예: 김○○ 교수" value="'+nm+'"><button id="cmtNext">다음</button></div><div class="vnote">검토위원이 의견을 남기는 곳이에요. 집필진은 여기에 의견을 쓰지 않아요. 의견은 지금 보고 있는 <b>'+cesc(LESSON.version||'')+'</b>에 대한 의견으로 기록돼요.</div><div class="msg" id="cmtAMsg"></div>';
   else if(cstep==='new') box.innerHTML='<div class="cwho">👤 <b>'+nm+'</b><button type="button" class="lnk2" id="cmtBack">이름 바꾸기</button></div><div class="hint" style="margin-top:6px">처음 오셨어요. 앞으로 의견을 기록하고 고칠 때 쓸 <b>비밀번호를 정해</b> 주세요(4자 이상).</div><input id="cmtPw" type="password" placeholder="비밀번호" autocomplete="new-password" style="margin-top:6px"><input id="cmtPw2" type="password" placeholder="비밀번호 한 번 더" autocomplete="new-password" style="margin-top:6px"><div class="r" style="margin-top:6px;justify-content:flex-end"><button id="cmtNext">정하고 시작</button></div><div class="msg" id="cmtAMsg"></div>';
   else box.innerHTML='<div class="cwho">👤 <b>'+nm+'</b><button type="button" class="lnk2" id="cmtBack">이름 바꾸기</button></div><label for="cmtPw">비밀번호</label><div class="r"><input id="cmtPw" type="password" placeholder="처음에 정한 비밀번호" autocomplete="current-password"><button id="cmtNext">확인</button></div><div class="msg" id="cmtAMsg"></div>';
   const back=$('#cmtBack'); if(back) back.onclick=()=>{ cstep='name'; cmtAuthDraw(); };
@@ -1790,7 +1802,7 @@ function cmtListDraw(){ const box=$('#cmtMine'); if(!box||!cauth.get()) return; 
   let h='<div class="lh"><b>'+(call?'이 차시에 남긴 내 의견 '+citems.length+'건':'이 페이지에 남긴 내 의견 '+here.length+'건')+'</b><button type="button" class="lnk2" id="cmtAll">'+(call?'이 페이지만 보기':'차시 전체 '+citems.length+'건 보기')+'</button></div>';
   if(!list.length) h+='<div class="hint">'+(call?'아직 남긴 의견이 없어요.':'이 페이지에는 아직 남긴 의견이 없어요.')+'</div>';
   list.slice().reverse().forEach(it=>{ h+='<div class="it'+(cedit===it.id?' on':'')+'">'+(call?'<button type="button" class="pg" data-go="'+cesc(keyOf(it.url))+'">'+cesc(it.page)+'</button>':'')
-    +'<div class="ip">'+cesc(it.part)+'<span class="tm">'+cesc(it.time)+(it.edited?' · 고침 '+cesc(it.edited):'')+'</span></div><div class="io">'+cesc(it.opinion)+'</div>'
+    +'<div class="ip">'+(it.version?'<span class="vt" title="이 버전을 보고 쓴 의견">'+cesc(it.version)+'</span>':'')+cesc(it.part)+(it.state?'<span class="rs" title="집필진 반영 여부">'+cesc(it.state)+'</span>':'')+'<span class="tm">'+cesc(it.time)+(it.edited?' · 고침 '+cesc(it.edited):'')+'</span></div><div class="io">'+cesc(it.opinion)+'</div>'
     +'<button type="button" class="ed" data-id="'+cesc(it.id)+'">✏️ 고치기</button></div>'; });
   box.innerHTML=h; $('#cmtAll').onclick=()=>{ call=!call; cmtListDraw(); };
   box.querySelectorAll('.ed').forEach(b=>b.onclick=()=>cmtStartEdit(b.dataset.id));
@@ -1833,7 +1845,7 @@ async function cmtSave(){ const a=cauth.get(), text=$('#cmtText').value.trim(), 
   const part=CIRC[cpart]+' '+PARTS[cpart][0]+($('#cmtPart2').value.trim()?' — '+$('#cmtPart2').value.trim():'');
   $('#cmtGo').disabled=true; msg.className='msg'; msg.textContent=cedit?'고치는 중…':'기록하는 중…';
   try{ if(cedit){ await cmtApi({act:'edit',name:a.name,pw:a.pw,id:cedit,part,opinion:text}); msg.className='msg ok'; msg.textContent='고친 내용을 시트에 저장했어요.'; cedit=null; cmtStopEdit(); }
-    else { await cmtApi({act:'add',name:a.name,pw:a.pw,lesson:LESSON.no+'차시 '+LESSON.title,page:pageLabel(),part,opinion:text,url:cmtUrl(),code:LESSON.code});
+    else { await cmtApi({act:'add',name:a.name,pw:a.pw,lesson:LESSON.no+'차시 '+LESSON.title,page:pageLabel(),part,opinion:text,url:cmtUrl(),code:LESSON.code,version:LESSON.version||''});
       msg.className='msg ok'; msg.textContent='구글 시트에 기록했어요. 이 페이지에 의견을 더 남겨도 돼요.'; $('#cmtText').value=''; $('#cmtPart2').value=''; }
     await cmtLoad(); }
   catch(e){ msg.className='msg no'; msg.textContent=(e.message==='Failed to fetch'?'서버에 연결하지 못했어요':e.message)+'. 적은 글은 그대로 있어요. 다시 눌러 주세요.'; if(/비밀번호|등록되지/.test(e.message)){ cauth.set(null); cstep='pw'; cmtAuthDraw(); } }
@@ -1841,7 +1853,7 @@ async function cmtSave(){ const a=cauth.get(), text=$('#cmtText').value.trim(), 
 // 화면 위에 부분 상자와 번호를 그린다. 화면이 바뀌거나(영상 컷, 대화 펼침 포함) 크기가 바뀌면 다시 그린다.
 function cmtRefresh(){ if(!cmtOn()) return; const st=$('#stage'); if(!st) return;
   if(cmode==='all'){ const o=$('#cmtov'); if(o) o.classList.remove('on'); return; }
-  $('#cmtLesson').textContent=LESSON.no+'차시 '+LESSON.title; $('#cmtPage').textContent=pageLabel(); if(cmtRefresh.k!==curKey()){ cmtRefresh.k=curKey(); cmtListDraw(); }
+  $('#cmtLesson').textContent=LESSON.no+'차시 '+LESSON.title+(LESSON.version?' · '+LESSON.version:''); $('#cmtPage').textContent=pageLabel(); if(cmtRefresh.k!==curKey()){ cmtRefresh.k=curKey(); cmtListDraw(); }
   let ov=$('#cmtov'); if(!ov){ ov=el('div','notranslate'); ov.id='cmtov'; document.body.append(ov); ov.onclick=e=>{ const b=e.target.closest('.nb'); if(b) pickPart(+b.dataset.k); }; }
   const S=st.getBoundingClientRect(); Object.assign(ov.style,{left:S.left+'px',top:S.top+'px',width:S.width+'px',height:S.height+'px'}); ov.classList.add('on');
   // 스크롤되는 칸(대화창 등) 밖으로 나간 부분은 잘라서 보이는 만큼만 표시한다
@@ -1937,7 +1949,7 @@ function go(d){ window.__vodScript=false; const mod=LESSON.modules[mi]; { const 
 function init(){
   window.__kitOk=true; document.title=(LESSON.code||'')+' '+LESSON.title+' · 수학 한국어 어휘 시안';
   { const r=KIT.check(SPEC), n=r.err.length+r.warn.length, b=$('#checkBtn'); b.textContent=n?'점검 '+n:'점검 ✓'; if(r.err.length) b.style.cssText='background:#ffd6d6;border-color:#d23a3a;color:#a11'; else if(n) b.style.cssText='background:#fff1b8;border-color:#c79a00'; b.onclick=showCheck; }
-  $('#lessonCode').textContent=LESSON.code||''; $('#lessonTitle').textContent=LESSON.title; $('#topTitle').textContent=LESSON.title; $('#lessonMeta').textContent=LESSON.grade+' · '+LESSON.standard;
+  $('#lessonCode').textContent=(LESSON.code||'')+(LESSON.version?' · '+LESSON.version:''); if(LESSON.version) document.title=LESSON.no+'차시 '+LESSON.title+' ('+LESSON.version+')'; $('#lessonTitle').textContent=LESSON.title; $('#topTitle').textContent=LESSON.title; $('#lessonMeta').textContent=LESSON.grade+' · '+LESSON.standard;
   LESSON.modules.forEach((m,i)=>{ const b=el('button','',`<span>${m.name}</span><small class="notranslate">${m.screens.length}</small>`); b.onclick=()=>{mi=i;si=0;render();};
     const T=LESSON.tips&&LESSON.tips.stages[m.name]; if(T){ const t=el('span','tipb notranslate','TIP'); t.title=m.name+' 단계를 어떻게 구성하는지 보기'; t.onclick=e=>{ e.stopPropagation(); showTip(m.name,i); }; b.querySelector('span').after(t); }
     $('#toc').append(b); });
