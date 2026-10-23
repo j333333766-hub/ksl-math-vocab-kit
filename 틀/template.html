@@ -46,6 +46,24 @@ function locate_q(q,paper,asks,o){ return Object.assign({type:'locate',q:q,paper
 function coin(x,...areas){ return Object.assign({},x,{coin:areas}); }   // 활동의 보상 영역(말하기·듣기·읽기·쓰기)을 직접 정할 때
 function book(lines,q,o){ return Object.assign({type:'listen',book:true,q:q||'다음 문장을 듣고 2번 따라 읽어 보세요.',items:lines.map(x=>Array.isArray(x)?{text:x[0],say:x[1]}:{text:x}),memo:'교과서 문제 문장 읽기(10/16 협의: 연습 3·4번째 활동은 교과서 문제처럼 보이게, 목적은 문제를 푸는 힘이 아니라 읽고 이해하는 힘). 문장은 교과서의 꼴을 따라 새로 쓴 것이다. 문제를 풀게 하지 않고, 듣고 소리 내어 읽기만 한다.'},o||{}); }
 function fill(sentence,options,answer,q,o){ return Object.assign({type:'drag_drop',q:q||'보기에서 알맞은 낱말을 골라 빈칸에 넣어 보세요.',sentence:sentence,options:options,answer:answer,memo:'빈칸 채우기. 보기를 준다(10/16 협의: 10분 만에 낱말을 외워 쓰기는 어렵다 — 한국어교육 관점). 낱말을 눌러도 들어가고 끌어 넣어도 된다(끌어 넣기의 휴대폰 리사이징은 업체가 시험 중).'},o||{}); }
+// 화면 구성 바꾸기(10/23 결정, CLAUDE.md 6-1절): 단계마다 화면을 골라 늘어놓을 때 쓰는 도우미. custom: {1: […], 2: […], 3: […], 5: […]} 나 words[].screens 에 넣는다
+function video(title,cuts,o){ o=o||{}; const d={type:'vod',title:title,cuts:cuts}; ['video','w','memo'].forEach(k=>{ if(o[k]) d[k]=o[k]; }); return d; }   // 영상(컷 대본). 몇 편이든 된다
+function flipcard(c,o){ o=o||{}; const d={type:'card_flip',q:o.q||'낱말을 클릭해 뜻을 확인해 보세요.',front:{text:c[0]},back:c[1],answerText:c[0]};   // c 는 card(…)
+  if(o.read){ d.read=o.read.map(x=>Array.isArray(x)?{text:x[0],say:x[1]}:{text:x}); d.coin=['읽기','말하기']; } ['w','coin','memo'].forEach(k=>{ if(o[k]) d[k]=o[k]; }); return d; }
+function dialog(lines,o){ o=o||{}; const used=lines.some(x=>(x[2]||{}).use);   // 대화 [[인물, '대사', {fig:, use:, say:}], …]
+  const d={type:'talk',q:o.q||'두 친구의 대화를 들어 보세요.',board:o.board||(used?'교과서':'칠판'),end:o.end||(used?'색이 다른 말풍선을 눌러 교과서 문장을 다시 들어 보세요.':'말풍선을 눌러 대화를 다시 들어 보세요.'),lines:lines.map(x=>Object.assign({who:x[0],text:x[1]},x[2]||{}))};
+  ['w','coin','memo'].forEach(k=>{ if(o[k]) d[k]=o[k]; }); return d; }
+function ox(statement,answer,o){ o=o||{}; const d={type:'OX',q:o.q||'맞으면 O, 틀리면 X를 선택해 보세요.',statement:statement,answer:answer};   // answer 는 'O' 또는 'X'
+  ['fig','why','coin','memo'].forEach(k=>{ if(o[k]) d[k]=o[k]; }); return d; }
+function match(left,right,answer,o){ o=o||{}; const d={type:'linetoline',q:o.q||'알맞은 것끼리 연결해 보세요.',left:left,right:right,answer:answer};   // answer[i] = 왼쪽 i번째와 이어지는 오른쪽 번호
+  ['fig','coin','memo'].forEach(k=>{ if(o[k]) d[k]=o[k]; }); return d; }
+function free(q,html,o){ o=o||{}; const d={type:'free',q:q,html:html||''};   // 새 화면(선생님 설계): 종이 안에 html, run(종이, 도구)으로 움직임
+  ['fig','run','coin','memo','w'].forEach(k=>{ if(o[k]) d[k]=o[k]; }); return d; }
+// 기본 화면을 그 자리에 넣는 표시
+function intro(){ return {__k:'intro'}; }            // 오늘의 어휘: 낱말 카드(intro_say)
+function precards(){ return {__k:'pre'}; }           // 오늘의 어휘: 미리 확인할 말 카드(pre_cards)
+function meaning(w){ return {__k:'meaning',w:w}; }   // 뜻 알아보기: 그 낱말의 기본 화면(생활 속 뜻 영상 + 뜻 카드). words[].screens 안에서는 낱말을 빼도 된다
+function checkup(){ return {__k:'checkup'}; }        // 정리하기: 점검표(summary)
 </script>
 <script>
 /*__CONTENT__*/
@@ -94,6 +112,8 @@ button{font:inherit;cursor:pointer}
 .tools button{width:2.3em;height:2.3em;border-radius:50%;border:.14em solid #111;background:#f58a1f;color:#fff;font-size:.8em}
 .pad{position:absolute;left:9%;right:9%;top:16%;bottom:0;background:#fff;border:.16em solid #111;border-bottom:0;border-radius:1.2em 1.2em 0 0;padding:1.2em 1.3em .6em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6em}
 .pad.full{top:3.2%}
+.free{width:100%;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6em;text-align:center}
+.free svg.fig,.free>svg{max-width:100%;max-height:100%}
 .pad:before,.pad:after{content:"";position:absolute;top:-.9em;width:4.2em;height:1.9em;background:radial-gradient(circle at .5em 1.4em,#111 .28em,transparent .3em),radial-gradient(circle at 2.1em 1.4em,#111 .28em,transparent .3em),radial-gradient(circle at 3.7em 1.4em,#111 .28em,transparent .3em),linear-gradient(90deg,transparent .32em,#f3d77a .32em,#f3d77a .68em,transparent .68em,transparent 1.92em,#f3d77a 1.92em,#f3d77a 2.28em,transparent 2.28em,transparent 3.52em,#f3d77a 3.52em,#f3d77a 3.88em,transparent 3.88em)}
 .pad:before{left:5%}.pad:after{right:5%}
 .nav{position:absolute;top:47%;width:2.4em;height:2.8em;border:0;background:none;font-size:1.5em;color:#f58a1f;text-shadow:0 0 0 #111;-webkit-text-stroke:.05em #111}
@@ -783,7 +803,7 @@ const KIT=(function(){
     say:'연습하기 — 말하기. 문장을 듣고 따라 말한다(원본 step_recorde).',
     outro:'정리하기. 오늘 익힌 낱말이 모두 다시 나온다(작년 초등과 같이 콘텐츠 끝에는 배운 어휘가 다 노출됨). 문제를 풀게 하지 않고 점수도 매기지 않는다. ‘다시 볼래요’를 누르면 그 낱말의 ‘생활 속 뜻’으로 돌아간다.'};
   const COIN_DEF=x=>x.type==='choice'?(x.say?['듣기']:['읽기']):x.type==='drag_drop'?['읽기','쓰기']:x.type==='ocr'?['쓰기']:x.type==='step_recorde'?['말하기']:
-    x.type==='listen'?(x.mode==='type'?['듣기','쓰기']:x.book?['읽기','말하기']:x.tip?['듣기']:['듣기','말하기']):x.type==='card_flip'?['읽기']:x.type==='talk'?['듣기']:x.type==='spot'?['읽기']:[];
+    x.type==='listen'?(x.mode==='type'?['듣기','쓰기']:x.book?['읽기','말하기']:x.tip?['듣기']:['듣기','말하기']):x.type==='card_flip'?['읽기']:x.type==='talk'?['듣기']:x.type==='spot'?['읽기']:x.type==='OX'?['읽기']:x.type==='linetoline'?['읽기']:[];
   function build1016(p){
     const no=p.no, row=LESSONS[no]||{grade:'중1',title:p.title||'',std:'',std_text:''};
     const nw=p.new, ess=p.ess||[], pre=p.pre||[], aux=p.aux||[], M=[];
@@ -792,29 +812,47 @@ const KIT=(function(){
     //  (업체 SB의 들어가기·오늘의 어휘 / 어휘 학습하기 / 수학적으로 말하기·수학 맛보기 / 정리와 활용에 차례로 대응)
     // 1. 오늘의 어휘: 안내 캐릭터 → 미리 확인할 말 → 오늘 익힐 낱말 듣기
     // 10/20 검토 의견: ① 동기 유발 영상 → ② 낱말 카드만 + 안내 캐릭터 내레이션(카드를 누르면 읽어 줌, 낱말 듣기 화면을 합침) → 미리 확인할 말
-    let s=[];
-    if(p.motive) s.push(Object.assign({type:'vod',title:p.motive.title||'동기 유발',cuts:p.motive.cuts,memo:p.motive.memo||MEMO1.motive},p.motive.video?{video:p.motive.video}:{}));
-    s.push(C({type:'guide',say:p.intro_say,chips:nw,core:ess,cards:true,note:p.intro_note,memo:MEMO1.guide}));
-    pre.forEach((x,i)=>{ const c=(p.pre_cards||[])[i]; if(c) s.push(C({type:'card_flip',q:p.pre_q||'앞에서 배운 낱말이에요. 낱말을 클릭해 뜻을 확인해 보세요.',front:{text:c[0]},back:c[1],answerText:c[0]},MEMO1.pre.split('{n}').join(x[1]))); });
-    M.push({name:'오늘의 어휘',screens:s});
-    // 2. 뜻 알아보기: 낱말마다 생활 속 뜻(영상) → 뜻 카드 + 2번 따라 읽기(10/20 검토 의견으로 한 화면) (SB ‘어휘 학습하기’처럼 한 단계 안에서 낱말을 차례로)
-    s=[]; const first=[];
-    p.words.forEach(W=>{ first.push(s.length);
-      s.push(Object.assign({type:'vod',title:'생활 속 뜻: '+W.w,cuts:W.daily,memo:W.daily_memo||MEMO1.daily},W.video?{video:W.video}:{}));
-      s.push(C({type:'card_flip',q:'낱말을 클릭해 뜻을 확인해 보세요.',front:{text:W.card[0]},back:W.card[1],answerText:W.card[0],read:W.read.map(x=>Array.isArray(x)?{text:x[0],say:x[1]}:{text:x}),coin:['읽기','말하기']},MEMO1.card)); });
-    M.push({name:'뜻 알아보기',screens:s});
-    // 3. 교과서 맛보기: 낱말마다 용례 대화(교과서 문장) → 교과서 문제 문장 읽기(연습에 적은 book 활동을 이 단계로 옮김)
-    s=[]; p.words.forEach(W=>{ if(W.talk) s.push(C({type:'talk',q:W.talk.q||'두 친구의 대화를 들어 보세요.',board:W.talk.board||'교과서',end:W.talk.end||'색이 다른 말풍선을 눌러 교과서 문장을 다시 들어 보세요.',
-        lines:W.talk.lines.map(x=>Object.assign({who:x[0],text:x[1]},x[2]||{}))},MEMO1.talk)); });
-    p.practice.filter(x=>x.book).forEach(x=>s.push(C(x)));
+    // 10/23 결정: 아래 차례는 '기본 구성'이다. 차시 내용에 custom: {1: […], 2: […], 3: […], 5: […]}(단계 전체)나 words[].screens(그 낱말의 뜻 알아보기)를 적으면
+    // 그 단계는 적은 화면을 적은 차례대로 보여 준다. intro()·precards()·meaning(w)·checkup() 자리에는 기본 화면이 들어간다(CLAUDE.md 6-1절).
+    const CU=p.custom||{}, words=p.words||[], wordOf=w=>words.find(W=>W.w===w);
+    const vodMemo={1:MEMO1.motive,2:MEMO1.daily};
+    const fit=(x,step)=>{ if(x.type==='vod'&&!x.memo&&vodMemo[step]) x=Object.assign({},x,{memo:vodMemo[step]}); return C(x,x.type==='talk'?MEMO1.talk:x.type==='card_flip'&&step===2?MEMO1.card:x.type==='choice'?MEMO1.word:x.type==='ocr'?MEMO1.hand:x.type==='step_recorde'?MEMO1.say:null); };
+    const introS=()=>[C({type:'guide',say:p.intro_say,chips:nw,core:ess,cards:true,note:p.intro_note,memo:MEMO1.guide})];
+    const preS=()=>{ const r=[]; pre.forEach((x,i)=>{ const c=(p.pre_cards||[])[i]; if(c) r.push(C({type:'card_flip',q:p.pre_q||'앞에서 배운 낱말이에요. 낱말을 클릭해 뜻을 확인해 보세요.',front:{text:c[0]},back:c[1],answerText:c[0]},MEMO1.pre.split('{n}').join(x[1]))); }); return r; };
+    const meaningS=W=>{ if(!W) return []; const r=[];
+      if((W.daily||[]).length) r.push(Object.assign({type:'vod',title:'생활 속 뜻: '+W.w,cuts:W.daily,memo:W.daily_memo||MEMO1.daily,w:W.w},W.video?{video:W.video}:{}));
+      if(W.card) r.push(C({type:'card_flip',q:'낱말을 클릭해 뜻을 확인해 보세요.',front:{text:W.card[0]},back:W.card[1],answerText:W.card[0],read:(W.read||[]).map(x=>Array.isArray(x)?{text:x[0],say:x[1]}:{text:x}),coin:['읽기','말하기'],w:W.w},MEMO1.card));
+      return r; };
+    let checkS=null;   // 정리하기 점검표는 ‘다시 볼래요’ 자리를 알아야 하므로 뜻 알아보기를 만든 뒤에 채운다
+    const expand=(list,step,W)=>list.flatMap(x=>{ if(!x) return [];
+      if(x.__k==='intro') return introS(); if(x.__k==='pre') return preS();
+      if(x.__k==='meaning') return meaningS(x.w?wordOf(x.w):W);
+      if(x.__k==='checkup'){ checkS={type:'checklist'}; return [checkS]; }
+      const y=fit(x,step); if(W&&!y.w) y.w=W.w; return [y]; });
+    // 1. 오늘의 어휘
+    let s;
+    if(CU[1]) s=expand(CU[1],1);
+    else { s=[]; if(p.motive) s.push(Object.assign({type:'vod',title:p.motive.title||'동기 유발',cuts:p.motive.cuts,memo:p.motive.memo||MEMO1.motive},p.motive.video?{video:p.motive.video}:{})); s=s.concat(introS(),preS()); }
+    if(s.length) M.push({name:'오늘의 어휘',screens:s});
+    // 2. 뜻 알아보기: 기본은 낱말마다 생활 속 뜻(영상) → 뜻 카드 + 2번 따라 읽기(10/20 검토 의견으로 한 화면) (SB ‘어휘 학습하기’처럼 한 단계 안에서 낱말을 차례로)
+    s=CU[2]?expand(CU[2],2):words.flatMap(W=>W.screens?expand(W.screens,2,W):meaningS(W));
+    const m2=M.length; if(s.length) M.push({name:'뜻 알아보기',screens:s});
+    // 3. 교과서 맛보기: 기본은 낱말마다 용례 대화(교과서 문장) → 교과서 문제 문장 읽기(연습에 적은 book 활동을 이 단계로 옮김)
+    if(CU[3]) s=expand(CU[3],3);
+    else { s=[]; words.forEach(W=>{ if(W.talk) s.push(C({type:'talk',q:W.talk.q||'두 친구의 대화를 들어 보세요.',board:W.talk.board||'교과서',end:W.talk.end||'색이 다른 말풍선을 눌러 교과서 문장을 다시 들어 보세요.',
+        lines:W.talk.lines.map(x=>Object.assign({who:x[0],text:x[1]},x[2]||{})),w:W.w},MEMO1.talk)); }); }
+    (p.practice||[]).filter(x=>x.book).forEach(x=>s.push(C(x)));
     if(s.length) M.push({name:'교과서 맛보기',screens:s});
     // 4. 연습하기
-    M.push({name:'연습하기',screens:p.practice.filter(x=>!x.book).map(x=>C(x,x.type==='choice'?MEMO1.word:x.type==='ocr'?MEMO1.hand:x.type==='step_recorde'?MEMO1.say:null))});
-    // 5. 정리하기 (‘다시 볼래요’ → 뜻 알아보기의 그 낱말 첫 화면)
-    const wi=w=>{ const k=p.words.findIndex(W=>W.w===w); return k<0?null:[1,first[k],0]; };
-    M.push({name:'정리하기',screens:[{type:'checklist',q:p.outro_q||'오늘 익힌 낱말을 알고 있나요?',yes:'알아요',no:'다시 볼래요',say:p.outro_say,
+    s=(p.practice||[]).filter(x=>!x.book).map(x=>fit(x,4)); if(s.length) M.push({name:'연습하기',screens:s});
+    // 5. 정리하기 (‘다시 볼래요’ → 뜻 알아보기에서 그 낱말이 처음 나오는 화면)
+    const sc2=M[m2]&&M[m2].name==='뜻 알아보기'?M[m2].screens:[];
+    const wi=w=>{ let k=sc2.findIndex(x=>x.w===w); if(k<0) k=sc2.findIndex(x=>x.answerText===w||String(x.title||'').includes(w)); return k<0?null:[m2,k,0]; };
+    if(CU[5]) s=expand(CU[5],5); else { checkS={type:'checklist'}; s=[checkS]; }
+    if(checkS) Object.assign(checkS,{q:p.outro_q||'오늘 익힌 낱말을 알고 있나요?',yes:'알아요',no:'다시 볼래요',say:p.outro_say,
       allOk:p.outro_ok||'모두 익혔어요! 이제 학교 수업에서 만나요.',someNo:'‘다시 볼래요’를 누른 낱말은 한 번 더 보고 와요.',
-      items:p.summary.map(x=>({t:x[0],ex:x[2]+'\n예: '+x[1],go:'→ ‘'+x[0]+'’ 생활 속 뜻 다시 보기',jump:wi(x[0])})),note:p.outro_note,memo:MEMO1.outro}]});
+      items:(p.summary||[]).map(x=>{ const j=wi(x[0]); return {t:x[0],ex:x[2]+'\n예: '+x[1],go:'→ ‘'+x[0]+'’ '+(j&&sc2[j[1]].type==='vod'?'생활 속 뜻':'뜻')+' 다시 보기',jump:j}; }),note:p.outro_note,memo:MEMO1.outro});
+    if(s.length) M.push({name:'정리하기',screens:s});
     // 어휘 표, 번역에서 빼는 낱말
     const names={}; Object.keys(LESSONS).forEach(k=>names[k]=LESSONS[k].title);
     const vocab={'학습 어휘 (이 차시에서 익힘)':nw.map(w=>w+(ess.includes(w)?' (필수어휘)':' (보조어휘)'))};
@@ -830,20 +868,27 @@ const KIT=(function(){
     return L; }
   function check1016(p){
     const err=[], warn=[];
-    const need=['no','unit','new','intro_say','words','practice','summary'];
+    const CU=p.custom||{}, mk=(k,list)=>(list||[]).some(x=>x&&x.__k===k);
+    // 10/23 결정: 화면 구성은 선생님이 바꿀 수 있다. 기본 화면을 쓰는 곳에서만 그 화면의 칸을 요구한다
+    const usesIntro=!CU[1]||mk('intro',CU[1]), usesCheck=!CU[5]||mk('checkup',CU[5]);
+    const need=['no','unit','new','practice'].concat(usesIntro?['intro_say']:[],CU[2]?[]:['words'],usesCheck?['summary']:[]);
     const miss=need.filter(k=>!(k in p)); if(miss.length) return {err:['빠진 칸: '+miss.join(', ')],warn:warn};
     const row=LESSONS[p.no]; if(!row) return {err:['차시 번호 '+p.no+' 가 60차시 목록에 없습니다.'],warn:warn};
-    const nw=p.new, same=(a,b)=>a.slice().sort().join('|')===b.slice().sort().join('|');
+    const nw=p.new, words=p.words||[], same=(a,b)=>a.slice().sort().join('|')===b.slice().sort().join('|');
     const texts=o=>typeof o==='string'?[o]:Array.isArray(o)?o.flatMap(texts):(o&&typeof o==='object')?Object.values(o).flatMap(texts):[];
     if(!same(nw,row.words)) warn.push('학습 어휘가 60차시 목록과 다릅니다. ['+nw.join(', ')+'] / 목록 ['+row.words.join(', ')+']');
-    const ww=p.words.map(W=>W.w); nw.forEach(w=>{ if(!ww.includes(w)) err.push('‘'+w+'’: 어휘 학습(words)에 없습니다.');
-      if(!p.summary.some(x=>x[0]===w)) err.push('‘'+w+'’: 마무리 정리(summary)에 없습니다.'); });
-    p.words.forEach(W=>{ if(!(W.daily||[]).length) err.push('‘'+W.w+'’: 생활 속 뜻(daily) 영상이 없습니다.');
-      if(!W.card) err.push('‘'+W.w+'’: 뜻 카드(card)가 없습니다.'); if(!(W.read||[]).length) err.push('‘'+W.w+'’: 따라 읽기(read)가 없습니다.');
+    // 뜻 알아보기에서 기본 화면(생활 속 뜻 + 뜻 카드)을 쓰는 낱말
+    const basic=w=>{ if(CU[2]) return mk('meaning',CU[2].filter(x=>x&&x.w===w)); const W=words.find(W=>W.w===w); return !!W&&(!W.screens||mk('meaning',W.screens)); };
+    const shown=w=>CU[2]?texts(CU[2]).some(t=>String(t).includes(w))||basic(w):words.some(W=>W.w===w);
+    nw.forEach(w=>{ if(!shown(w)) err.push('‘'+w+'’: 뜻 알아보기에 나오지 않습니다.');
+      if(usesCheck&&!(p.summary||[]).some(x=>x[0]===w)) err.push('‘'+w+'’: 정리하기 점검표(summary)에 없습니다.'); });
+    words.forEach(W=>{ const b=basic(W.w);
+      if(b&&!(W.daily||[]).length) err.push('‘'+W.w+'’: 생활 속 뜻(daily) 영상이 없습니다.');
+      if(b&&!W.card) err.push('‘'+W.w+'’: 뜻 카드(card)가 없습니다.'); if(b&&!(W.read||[]).length) err.push('‘'+W.w+'’: 따라 읽기(read)가 없습니다.');
       (W.daily||[]).forEach((c,i)=>{ if((c.caption||'').length>60) warn.push('‘'+W.w+'’ 생활 속 뜻 '+(i+1)+'컷: 자막이 깁니다('+c.caption.length+'자). 한 화면 한 문장(두 줄 안).'); });
       const back=W.card&&W.card[1]; const bt=back?(back.caption||back.text||''):''; if(bt.length>40) warn.push('‘'+W.w+'’ 뜻 카드의 뜻이 깁니다('+bt.length+'자). 두 줄 안으로.'); });
-    const acts=p.practice.length; if(acts>10) err.push('연습 활동(교과서 문장 읽기 포함)이 '+acts+'개입니다. 한 묶음 10개까지(플랫폼 규칙).');
-    const coins=new Set(); p.practice.forEach(x=>(x.coin||COIN_DEF(x)).forEach(c=>coins.add(c)));
+    const acts=p.practice.length; if(acts>10) warn.push('연습 활동(교과서 문장 읽기 포함)이 '+acts+'개입니다. 업체 플랫폼은 한 묶음 10개까지였습니다(작년 기준, 나중에 함께 맞춥니다).');
+    const coins=new Set(); p.practice.concat(CU[3]||[]).forEach(x=>{ if(x&&!x.__k) (x.coin||COIN_DEF(x)).forEach(c=>coins.add(c)); });
     ['말하기','듣기','읽기','쓰기'].forEach(c=>{ if(!coins.has(c)) warn.push('교과서 맛보기·연습하기에 ‘'+c+'’ 보상 활동이 없습니다(4영역을 고루).'); });
     if(p.practice.filter(x=>x.type==='ocr').length>1) warn.push('손글씨 따라 쓰기는 하나만(10/18 결정).');
     (p.aux||[]).forEach(w=>{ if(texts(p).join(' ').includes(w)===false) return; });
@@ -856,10 +901,10 @@ const KIT=(function(){
       if(fm&&+fm[1]!==verNo(p)) err.push('파일 이름은 _v'+fm[1]+' 인데 차시 내용의 version 은 '+verNo(p)+' 입니다. 둘을 같게 맞춥니다.');
       else if(!fm&&p.status!=='샘플'&&/\.html$/i.test(fn)) warn.push('파일 이름 끝에 버전을 붙입니다(예: '+fn.replace(/\.html$/i,'')+'_v'+verNo(p)+'.html). CLAUDE.md 9절.'); }
     ['intro_note','outro_note','today_q'].forEach(k=>{ if(p[k]) warn.push(k+'는 10/20 검토 의견 반영으로 쓰지 않습니다(화면에 설명 문장·낱말 듣기 화면을 두지 않음). 이 줄을 지우세요.'); });
-    if(!p.motive) warn.push('동기 유발 영상(motive)이 없습니다. 오늘의 어휘 첫 화면은 20초 안팎의 동기 유발 영상입니다(샘플의 motive 참고).');
+    if(!p.motive&&!CU[1]) warn.push('동기 유발 영상(motive)이 없습니다. 오늘의 어휘 첫 화면은 20초 안팎의 동기 유발 영상입니다(샘플의 motive 참고).');
     ['comment_url','comment_sheet','ask_url'].forEach(k=>{ if(p[k]) warn.push(k+'는 적지 않습니다. 검토 의견·지침 묻기 서버는 틀에 정해져 있어 모든 차시가 같이 씁니다. 이 줄을 지우세요.'); });
     // 교과서 문제 문장 읽기(book)는 교과서 꼴(‘~하시오’)을 그대로 보여 주는 활동이라 빼고 본다
-    texts([p.words,p.practice.filter(x=>!x.book),p.summary,p.intro_say,p.intro_note]).forEach(t=>{ if(/(하|으|이|내|쓰|르|리|구하|풀|치)시오/.test(t)) warn.push('‘~하시오’ 꼴의 문장이 있습니다(교과서 문장 읽기 밖에서는 쓰지 않습니다): '+String(t).slice(0,40)); });
+    texts([words,p.practice.filter(x=>!x.book),p.summary||[],p.intro_say||'',p.intro_note||'']).forEach(t=>{ if(/(하|으|이|내|쓰|르|리|구하|풀|치)시오/.test(t)) warn.push('‘~하시오’ 꼴의 문장이 있습니다(교과서 문장 읽기 밖에서는 쓰지 않습니다): '+String(t).slice(0,40)); });
     if(p.status!=='샘플'&&texts(p.words).some(t=>t.includes('나한테 사탕 6개가 있어'))) warn.push('샘플(소인수분해)의 내용이 남아 있는 것 같습니다. 차시 내용을 모두 이 차시의 것으로 바꾸세요.');
     return {err:err,warn:warn}; }
 
@@ -940,7 +985,7 @@ if(location.hash==='#check'){ __msg(KIT.report(SPEC)); throw new Error('점검�
 let __L; try{ __L=KIT.build(SPEC); }catch(e){ __msg('차시 내용으로 화면을 만들지 못했습니다: '+e.message+'\n\n'+KIT.report(SPEC)); throw e; }
 if(location.hash==='#dump'){ __msg(JSON.stringify(__L)); throw new Error('자료만 보여 줌'); }
 const LESSON = __L;
-const TYPE_KO={guide:'들어가기(안내 캐릭터)',opener:'단계 표지(모션그래픽)',curation:'큐레이션',checklist:'낱말 확인',recall:'낱말 정리(넣기)',lang_match:'아는 말과 연결',vod:'영상(대본)',motion:'오늘의 어휘 제시',card_flip:'카드 뒤집기',listen:'듣고 따라 읽기',drag_drop:'끌어다 빈칸에 넣기',choice:'고르기',OX:'O·X 고르기',linetoline:'선으로 잇기',input:'직접 써넣기',step_recorde:'듣고 따라 말하기',ocr:'손글씨 쓰기',talk:'용례 대화',spot:'잘못 쓴 문장 찾기',parse:'문제 한 줄 살펴보기',sort:'같은 일끼리 모으기',locate:'문제지에서 찾기'};
+const TYPE_KO={free:'새 화면(선생님 설계)',guide:'들어가기(안내 캐릭터)',opener:'단계 표지(모션그래픽)',curation:'큐레이션',checklist:'낱말 확인',recall:'낱말 정리(넣기)',lang_match:'아는 말과 연결',vod:'영상(대본)',motion:'오늘의 어휘 제시',card_flip:'카드 뒤집기',listen:'듣고 따라 읽기',drag_drop:'끌어다 빈칸에 넣기',choice:'고르기',OX:'O·X 고르기',linetoline:'선으로 잇기',input:'직접 써넣기',step_recorde:'듣고 따라 말하기',ocr:'손글씨 쓰기',talk:'용례 대화',spot:'잘못 쓴 문장 찾기',parse:'문제 한 줄 살펴보기',sort:'같은 일끼리 모으기',locate:'문제지에서 찾기'};
 let mi=0, si=0, memoOn=false;
 
 // ── 업체 SB 화면 틀(2026-10-19): 설정·다국어·보상 ──
@@ -1207,6 +1252,10 @@ function withFig(pad,sc){ // 그림이 있으면 물음은 종이 맨 위에 가
   return r;
 }
 const R={};
+// 새 화면(선생님 설계, 10/23): 차시 내용의 free(지시문, html, {fig, run})로 만든다. 지시문 띠와 바깥 틀은 다른 화면과 같고, 종이 안만 선생님이 꾸민다.
+// run(종이, 도구)이 있으면 그려 놓은 뒤 부른다. 도구: speak(말), ok(말)·no(말)(칭찬·다시 해 보기 띠, ok는 보상도 준다), rich(글), fig(그림).
+R.free=sc=>{ const pad=frame(sc.q); const box=el('div','free'); const h=sc.html||''; box.innerHTML=(sc.fig?fig(sc.fig):'')+(/</.test(h)?h:rich(h));   /* 태그가 있으면 그대로, 글만 있으면 **강조**·줄바꿈을 살린다 */ pad.append(box); const fbk=feedback(pad);
+  if(typeof sc.run==='function'){ try{ sc.run(box,{speak:speak,ok:m=>fbk(true,m),no:m=>fbk(false,m),rich:rich,fig:fig}); }catch(e){ box.append(el('div','fb no','화면을 만들다 오류가 났습니다: '+e.message)); } } };
 // 영상(mp4)이 있는 화면: 영상을 재생하고, 아래 컷 단추로 대본의 컷(at 초)으로 옮겨 간다. '📜 대본'을 누르면 컷 대본 보기(vodCuts)로 바뀐다.
 R.vod=sc=>{ if(!sc.video||window.__vodScript) return R.vodCuts(sc);
   const st=$('#stage'); st.innerHTML=''; st.classList.add('isvod','vvon'); const box=el('div','vod vv'); st.append(box);
