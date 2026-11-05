@@ -1,5 +1,5 @@
 # 스토리라인 pptx: storyline_capture.mjs가 찍은 화면 → 한 화면 한 슬라이드
-#   python storyline_pptx.py "차시 html 경로" ["담당 선생님 (학교)"]  →  html 옆 <html 이름>_스토리라인.pptx
+#   python storyline_pptx.py "차시 html 경로" ["담당 선생님 (학교)"]  →  html 옆 <html 이름>.pptx (html과 같은 이름)
 import json, os, re, sys
 from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
@@ -12,7 +12,7 @@ from pptx.oxml.ns import qn
 SRC = os.path.abspath(sys.argv[1])
 BASE = os.path.splitext(os.path.basename(SRC))[0]
 SL = os.path.join(os.path.dirname(SRC), '스토리라인_임시')
-OUT = os.path.join(os.path.dirname(SRC), BASE + '_스토리라인.pptx')
+OUT = os.path.join(os.path.dirname(SRC), BASE + '.pptx')   # 교수님 규칙(11/3): html과 pptx는 같은 이름
 WHO = sys.argv[2] if len(sys.argv) > 2 else ''
 FONT = '맑은 고딕'
 NAVY, TEAL, GRAY, LIGHT, ORANGE = RGBColor(0x18, 0x36, 0x4A), RGBColor(0x3D, 0xBB, 0x9F), RGBColor(0x6B, 0x72, 0x80), RGBColor(0xF3, 0xF5, 0xF8), RGBColor(0xE8, 0x7A, 0x1E)
