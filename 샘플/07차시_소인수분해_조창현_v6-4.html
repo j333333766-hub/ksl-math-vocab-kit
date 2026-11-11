@@ -2679,7 +2679,7 @@ button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
     build(c) {
       c.rb = put(c.sc, 'figbox', robot(), 'left:70px;top:190px;width:330px;height:300px;transition:opacity .45s;transform:translateX(405px)');   /* v5-4: 오른쪽 상자가 없을 때 그림은 가운데 */
       c.rbs = $('.robot', c.rb); c.rbs.style.cssText = 'left:80px;top:70px;width:200px;height:170px';
-      c.rlab = put(c.rb, 'figlab', '블록 로봇', 'left:0;right:0;top:0');
+      c.rlab = put(c.rb, 'figlab', '', 'left:0;right:0;top:0');
       c.fig = facFig(); c.fig.style.cssText = 'left:100px;top:150px;width:300px;height:420px;transition:opacity .45s,transform .6s;opacity:0;transform:translateX(390px)'; c.sc.appendChild(c.fig);
       c.rb.style.opacity = 0;
       c.wc = put(c.sc, 'card wcard hide', '<span class="w kw-t">소인수분해</span>', 'left:470px;top:150px;width:600px;height:110px;transition:transform .6s;transform:translateX(-130px)');
