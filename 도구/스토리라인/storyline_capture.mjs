@@ -35,7 +35,8 @@ const DEMO = {
 };
 const DEMO_ARGS = { hear: [0] }; // 데모 함수에 넘길 값
 const DEMO_PAGE = { 'rec1.done': '두 낱말을 모두 들은 뒤', 'click6.seen': '‘소인수’를 누른 뒤' }; // 화면마다 다른 이름
-const POPS = [['soinsu', '소인수'], ['geodeup', '거듭']];
+// 팝업: 화면에서 실제로 누를 수 있는 낱말(kw('키', …))만 찍는다(2026-11-13: 열리지 않는 옛 팝업은 찍지 않음)
+const POPS = [...new Map([...HTML.matchAll(/kw\('(\w+)', '([^']+)'\)/g)].map((m) => [m[1], m[2]])).entries()];
 const MODS = ['인트로', '오늘의 어휘', '뜻 알아보기', '교과서 맛보기', '연습하기', '정리하기', '아웃트로'];
 
 // 캡처 훅에 쪽 목록·현재 화면을 내보내는 줄만 더한 임시 사본
@@ -67,7 +68,7 @@ for (const [i, P] of pages.entries()) {
   const base = { page: i + 1, id: P.id, mod: P.m, modName: MODS[P.m - 1], sub: P.sub, kind: P.kind };
   const src = await page.evaluate((k) => {
     const p = window.__PAGES[k];
-    return { name: p.name || '', steps: (p.steps || []).map((f) => f.toString()), other: Object.entries(p).filter(([key, v]) => typeof v === 'function' && key !== 'build').map(([, v]) => v.toString()).join('\n'), build: p.build ? p.build.toString() : '', instr: p.instr ? p.instr[0] : '' };
+    return { name: p.name || '', steps: (p.steps || []).map((f) => f.toString()), other: Object.entries(p).filter(([key, v]) => typeof v === 'function' && key !== 'build').map(([, v]) => v.toString()).join('\n'), build: (p.build ? p.build.toString() : '') + ' ' + (p.ids || []).map((i) => `'${i}'`).join(' '), instr: p.instr ? p.instr[0] : '' };
   }, i);
   base.name = src.name || src.instr || '';
   if (P.steps) {
@@ -78,7 +79,7 @@ for (const [i, P] of pages.entries()) {
   } else {
     await page.evaluate((a) => window.__S.go(a), i);
     const instr = src.instr ? [{ who: '지시문', text: src.instr }] : [];
-    await snap({ ...base, state: '처음 화면', lines: [...instr, ...said(src.other).filter((l) => !l.id.startsWith('i_'))] });
+    await snap({ ...base, state: '처음 화면', lines: [...instr, ...said(src.other + ' ' + (src.build.match(/( '\w+')+$/) || [''])[0]).filter((l) => !l.id.startsWith('i_'))] });
     // 활동 후 상태
     const keys = await page.evaluate(() => Object.keys((window.__CUR().ctx || {}).demo || {}));
     for (const key of keys) {

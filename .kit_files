@@ -1,6 +1,7 @@
 CHANGELOG.md
 CLAUDE.md
 VERSION
+도구/스토리라인/storyboard_pptx.py
 도구/스토리라인/storyline_capture.mjs
 도구/스토리라인/storyline_pptx.py
 도구/영상 만들기.ps1
@@ -36,6 +37,10 @@ VERSION
 샘플/07차시_소인수분해_조창현_v6-3.pptx
 샘플/07차시_소인수분해_조창현_v6-4.html
 샘플/07차시_소인수분해_조창현_v6-4.pptx
+샘플/07차시_소인수분해_조창현_v6-5.html
+샘플/07차시_소인수분해_조창현_v6-5.pptx
+샘플/07차시_소인수분해_조창현_v6-5_스토리보드.json
+샘플/07차시_소인수분해_조창현_v6-5_스토리보드.pptx
 샘플/media/1-1_motive.mp4
 샘플/media/2-1_soinsubunhae.mp4
 샘플/media/2-2_geodeupjegop.mp4
