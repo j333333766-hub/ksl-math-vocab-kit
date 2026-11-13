@@ -41,7 +41,12 @@ const MODS = ['인트로', '오늘의 어휘', '뜻 알아보기', '교과서 �
 
 // 캡처 훅에 쪽 목록·현재 화면을 내보내는 줄만 더한 임시 사본
 const tmp = path.join(os.tmpdir(), `storyline_${Date.now()}.html`);
-fs.writeFileSync(tmp, HTML.replace('window.__S = {', 'window.__PAGES = PAGES; window.__CUR = () => cur;\n  window.__S = {'));
+// 연습 문제 함수에 문제 정보를 남기는 줄도 더한다(정답·오답 때 나오는 말을 스토리보드에 적으려고, 2026-11-13)
+const QHOOK = (s) => s
+  .replace(/function listenQ\([^)]*\) \{/, (m) => m + ' (window.__QA = window.__QA || {})[arguments[0]] = { t: 1 };')
+  .replace(/function blankQ\(cfg\) \{/, (m) => m + ' (window.__QA = window.__QA || {})[cfg.id] = { t: 2, full: cfg.full || [] };')
+  .replace(/function writeQ\(cfg\) \{/, (m) => m + ' (window.__QA = window.__QA || {})[cfg.id] = { t: 3, ok: cfg.okClip, ans: cfg.ansClip };');
+fs.writeFileSync(tmp, QHOOK(HTML).replace('window.__S = {', 'window.__PAGES = PAGES; window.__CUR = () => cur;\n  window.__S = {'));
 // 주의: Node 24의 fs.rmSync는 한글 경로에서 프로그램이 죽는다(0xC0000409) → 파일을 하나씩 지운다
 fs.mkdirSync(SHOTS, { recursive: true });
 for (const x of fs.readdirSync(SHOTS)) fs.unlinkSync(path.join(SHOTS, x));
@@ -97,6 +102,19 @@ for (const [i, P] of pages.entries()) {
       }
     }
   }
+}
+// 정답·오답 때 나오는 말(11/13 단톡방 김수철 교수: 내레이션에 들어가는 말은 스토리보드에도 넣는다)
+//   문제마다 첫 장면(처음 화면)에 fb: [{ when, who, text, id }]를 붙이고, 처음 대사(lines)에서는 뺀다.
+const QA = await page.evaluate(() => window.__QA || {});
+// 틀에 정해진 반응 말: 대사 표에 없고 녹음으로만 들어 있는 차시(샘플 v6-5 등)도 있어 기본 문장을 둔다(화면 글과 같음)
+for (const [id, text] of [['fb_ok', '참 잘했어요!'], ['fb_ans', '정답을 확인해 보세요.'], ['fb_write_retry', '다시 듣고 써 보세요.'], ['fb_write_unclear', '한 칸에 한 글자씩 크게 써 보세요.']]) if (!LINES[id]) LINES[id] = { who: '초록이', text };
+const FL = (id, when) => (LINES[id] ? { id, when, ...LINES[id] } : null);
+const FEEDBACK = (q) => (q.t === 1 ? [FL('fb_ok', '맞혔을 때'), FL('fb_ans', '틀렸을 때 (기회 1번을 다 써서 정답을 보여 줌)')]
+  : q.t === 2 ? [FL('fb_ok', '맞혔을 때 (화면 글: ‘참 잘했어요!’ 뒤에 완성된 문장)'), FL('fb_ans', '틀렸을 때 (빈칸에 정답을 넣어 보여 줌)'), ...q.full.map((id) => FL(id, '틀렸을 때 이어서 (완성된 문장)'))]
+  : [FL(q.ok, '맞혔을 때'), FL('fb_write_retry', '틀렸을 때 (기회가 남음, 3번까지)'), FL('fb_write_unclear', '글자를 알아보기 어려울 때'), FL(q.ans, '세 번 틀렸을 때 (칸에 연한 글자로 정답을 보여 줌)')]).filter(Boolean);
+for (const id of Object.keys(QA)) {
+  const first = shots.find((s) => s.id === id);
+  if (first) { first.fb = FEEDBACK(QA[id]); first.lines = first.lines.filter((l) => !(l.id || '').startsWith('fb_')); }
 }
 await browser.close();
 fs.unlinkSync(tmp);

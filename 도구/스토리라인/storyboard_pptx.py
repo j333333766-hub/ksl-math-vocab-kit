@@ -223,9 +223,17 @@ for k, sh in enumerate(shots, 1):
         if l.get('id') in VAR_IDS:
             row.append(('  ' + VARIANT, {'size': 12, 'bold': True, 'color': RED}))
         lines.append(row)
-    if not sh['show']:
+    if not sh['show'] and not sh.get('fb'):
         lines.append([('(대사 없음 — 화면 조작·활동 장면)', {'size': 11, 'color': GRAY})])
-    text(s, Inches(0.5), Inches(top + 0.04), IMG_W - Inches(0.3), Inches(7.5 - top - 0.3), lines)
+    # 정답·오답 때 나오는 말(캡처 도구가 문제의 첫 장면에 붙임. 11/13 김수철 교수: 내레이션에 들어가는 말은 스토리보드에도)
+    if sh.get('fb'):
+        lines.append([('정답·오답 때', {'bold': True, 'size': 11.5, 'color': ORANGE})])
+        for l in sh['fb']:
+            lines.append([(f"{l['when']}  ", {'size': 10.5, 'color': GRAY}), (f"{l['who']}  ", {'bold': True, 'size': 11.5}), (l['text'], {'size': 11.5})])
+    tb = text(s, Inches(0.5), Inches(top + 0.04), IMG_W - Inches(0.3), Inches(7.5 - top - 0.3), lines)
+    if len(lines) > 8:   # 줄이 많으면 칸에 들어가게 줄 간격을 좁힌다
+        for p in tb.text_frame.paragraphs:
+            p.space_before = p.space_after = Pt(0); p.line_spacing = 0.95
     # 오른쪽: 화면 설명 / 조작 / 구현 요청
     box(s, X2, Inches(0.92), W2, Inches(6.38), fill=WHITE, line=RGBColor(0xB8, 0xC0, 0xCC))
     parts = [('화면 설명', mm.get('화면 설명'), NAVY), ('조작·피드백', mm.get('조작'), NAVY), ('구현 요청', mm.get('구현 요청'), ORANGE)]
