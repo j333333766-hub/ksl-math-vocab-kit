@@ -2,6 +2,8 @@
 <!-- 차시 기록
   담당: 조창현
   고친 기록:
+    2026-11-27 v7-1(11/27 결정): 지시문(듣고 고르기·활용 연습)과 교과서 보기 첫 말(수학 교과서를 볼까요?)을 33차시와 같게, 교과서 캡처 확대(클로즈업) 뺌
+    2026-11-27 v7-1(11/27 점검): 활용 연습(교과서) 장면의 교과서 출처 표시를 뺌(출처는 스토리보드에만), 보기 순서·듣고 쓰기 말풍선 순서를 소인수분해·거듭제곱으로 맞춤
     2026-11-13 v6-5: 11/12 단톡방 지침 반영(충남대 정의 기준, 화면 정의 명사형, 정의 아래 용례 빼기, 한 화면 한 목표어, 교과서 맛보기 선생님 말)
     2026-11-11 v6-4: 1주차 검토의견(장미정·김수철) 반영
   충남대 정의와 다르게 쓴 것:
@@ -1362,8 +1364,8 @@ button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
     p_soinsu_3: { t: '소인수는 나눌 수 있는 수 중에서 소수인 것을 뜻해요. 따라서 2, 3은 소인수가 돼요.', r: 'chk' },
     p_geodeup_3: { t: '2 곱하기 2 곱하기 2. 2를 거듭 곱해요.', r: 'chk' },
     t_book1: { t: '수학 교과서를 볼까요?', r: 'tch' },
-    t_capA0: { t: '교과서에서 ‘소인수분해’를 찾아볼까요?', r: 'tch' },
-    t_capB0: { t: '교과서에서 ‘거듭제곱’을 찾아볼까요?', r: 'tch' },
+    t_capA0: { t: '수학 교과서를 볼까요?', r: 'tch' },
+    t_capB0: { t: '수학 교과서를 볼까요?', r: 'tch' },
     t_book1b: { t: '교과서 문장을 읽어 볼까요?', r: 'tch' },
     t_cap_a1: { t: '24를 소인수분해하시오.', r: 'tch' },
     t_cap_a2: { t: '소인수분해를 이용하여 다음 수의 약수를 모두 구하시오.', r: 'tch' },
@@ -1410,14 +1412,14 @@ button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
     ox2b: { t: '2, 3, 5는 서로 다른 수예요. 그래서 거듭제곱이 아니에요.', r: 'nar', capH: '2, 3, 5는 서로 다른 수예요. 그래서 <b class="kw-t">거듭제곱</b>이 아니에요.' },
     t_bk1d: { t: '소인수분해를 이용하여 18의 약수를 모두 구하시오.', r: 'tch' },
     t_bk2d: { t: '81을 소인수분해하고, 거듭제곱을 이용하여 나타내시오.', r: 'tch' },
-    i_qlisten2: { t: '다음을 듣고 빈칸에 알맞은 낱말을 선택해 보세요.', r: 'nar' },
+    i_qlisten2: { t: '다음을 듣고 알맞은 낱말을 선택해 보세요.', r: 'nar' },
     q1b: { t: '2 곱하기 2 곱하기 2를 거듭제곱으로 나타내면 2의 세제곱이에요.', r: 'nar' },
     q3d: { t: '어떤 자연수를 소인수의 곱으로 나타내는 것', r: 'nar' },
     q3e: { t: '같은 수를 여러 번 곱하는 것', r: 'nar' },
-    chk_q3: { t: '거듭제곱일까? 소인수분해일까?', r: 'chk' },
+    chk_q3: { t: '소인수분해일까? 거듭제곱일까?', r: 'chk' },
     chk_q3b: { t: '소인수분해일까? 거듭제곱일까?', r: 'chk' },
-    i_app1: { t: '칠판을 보고 빈칸에 알맞은 낱말을 골라 보세요.', r: 'nar' },
-    i_app2: { t: '교과서를 보고 빈칸에 알맞은 낱말을 골라 보세요.', r: 'nar' },
+    i_app1: { t: '보기에서 알맞은 낱말을 골라 빈칸에 넣어 보세요.', r: 'nar' },
+    i_app2: { t: '보기에서 알맞은 낱말을 골라 빈칸에 넣어 보세요.', r: 'nar' },
     q4a: { t: '5 곱하기 5 곱하기 5를 거듭제곱으로 나타냈구나.', r: 'ian' },
     kl_q4a: { t: '5를 세 번 곱한 것을 간단히 나타냈어.', r: 'anna' },
     q4b: { t: '다음 수를 소인수분해하시오.', r: 'nar' },
@@ -3085,7 +3087,7 @@ button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
     /* 커진 뒤에도 노란 줄이 화면 안(2~98%)에 남도록 기준점을 잡는다 */
     const org = (a, b) => { const lo = (sc * b - 98) / (sc - 1), hi = (sc * a - 2) / (sc - 1); return Math.min(Math.max((a + b) / 2, lo), hi); };
     p.style.transformOrigin = `${org(x0, x1).toFixed(1)}% ${org(y0, y1).toFixed(1)}%`;
-    p.style.transform = `scale(${sc.toFixed(2)})`;
+    /* 11/27: 33차시처럼 확대하지 않는다 */
     await c.wait(800);
     setChr(c.teacher, { arms: 'point' });
     await c.play(clip, { chr: c.teacher });
@@ -3108,7 +3110,7 @@ button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
     build(c) {
       meet('sents.class');
       cleanClass(c);
-      c.b1 = put(c.sc, 'bubble', '교과서에서 ‘소인수분해’를 찾아볼까요?', 'left:560px;top:84px;width:560px;--tx:400px');
+      c.b1 = put(c.sc, 'bubble', '수학 교과서를 볼까요?', 'left:560px;top:84px;width:560px;--tx:400px');
       c.cap = capCard(c, ["a1", "a2", "a3"], 'left:80px;top:110px;width:800px');
       c.pop = put(c.sc, 'cappop', '', 'left:80px;top:420px;width:800px;box-sizing:border-box');
     },
@@ -3151,7 +3153,7 @@ button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
     m: 4, sub: '3/4', kind: 'anim', id: 'capB',
     build(c) {
       cleanClass(c);
-      c.b1 = put(c.sc, 'bubble', '교과서에서 ‘거듭제곱’을 찾아볼까요?', 'left:560px;top:84px;width:560px;--tx:400px');
+      c.b1 = put(c.sc, 'bubble', '수학 교과서를 볼까요?', 'left:560px;top:84px;width:560px;--tx:400px');
       c.cap = capCard(c, ["b1", "b2", "b3"], 'left:80px;top:110px;width:800px');
       c.pop = put(c.sc, 'cappop', '', 'left:80px;top:420px;width:800px;box-sizing:border-box');
     },
@@ -3305,7 +3307,7 @@ button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
      맞으면 “참 잘했어요!”, 기회를 다 쓰면 “정답을 확인해 보세요.”(정답을 보여 주고 다음으로). 보상: 듣기 1점. 정답·오답 반응은 업체가 다듬는다 */
   function listenQ(id, sub, clip, ans, line) {
     PAGES.push({
-      m: 5, sub, kind: 'html', id, ids: [clip], instr: ['다음을 듣고 빈칸에 알맞은 낱말을 선택해 보세요.', 'i_qlisten2'],
+      m: 5, sub, kind: 'html', id, ids: [clip], instr: ['다음을 듣고 알맞은 낱말을 선택해 보세요.', 'i_qlisten2'],
       build(c) {
         /* v7: 성우가 읽는 문장을 보기 위에 쓰고, 답 자리는 빈칸(성우는 답까지 읽는다 — 11/25 장미정) */
         const qc = ear(put(c.sc, 'card qcard', '', 'left:110px;top:160px;width:1060px;height:136px;background:#e8f1fb;justify-content:center'), '#e3f1e7', '#d0e1f2');
@@ -3372,7 +3374,7 @@ button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
           TX = [370, 300]; TY = 470;
         } else qc = ear(put(c.sc, 'card qcard', '', 'left:140px;top:170px;width:1000px;height:160px;background:#e8f1fb'), '#e3f1e7', '#d0e1f2');
         const line = put(qc, 'q2line', `${cfg.scene === 'book' ? '<span class="qlab">문제 4</span>' : ''}<span>${cfg.before}</span><span class="bl-wrap"><span class="blank" role="button" tabindex="0" aria-label="빈칸"></span><span>${cfg.after}</span></span>`, cfg.fs ? `font-size:${cfg.fs}px` : null);
-        if (cfg.scene === 'book') { put(qc, 'nums', '<span>(1) 36</span><span>(2) 60</span><span>(3) 75</span><span>(4) 160</span>'); put(qc, 'src', '천재교육 중학교 수학 1, 14쪽'); }
+        if (cfg.scene === 'book') { put(qc, 'nums', '<span>(1) 36</span><span>(2) 60</span><span>(3) 75</span><span>(4) 160</span>'); }
         const blank = $('.blank', line);
         const words = cfg.words, RIGHT = cfg.right;
         const fb = put(c.sc, 'fb', '', cfg.scene === 'chalk' ? (cfg.lead ? 'left:130px;width:1020px;top:640px;' : 'left:330px;width:860px;top:648px;') + 'background:rgba(255,255,255,.94);border-radius:18px;padding:8px 12px;font-size:27px' : 'left:0;right:0;top:600px');
@@ -3573,11 +3575,11 @@ button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
       async intro(c) { if (c.mem.fin) return; const g = c.gen; await c.wait(250); if (c.gen !== g) return; await c.say([cfg.clip], $('.lis', c.sc)); },
     });
   }
-  writeQ({ id: 'q3', sub: '4/7', ans: '소인수분해', def: '어떤 자연수를 소인수의 곱으로 나타내는 것', clip: 'q3d', ask: `거듭제곱일까?<br>소인수분해일까?`, askClip: 'chk_q3', okClip: 'fb_ok_q1', ansClip: 'fb_ans_q1' });
+  writeQ({ id: 'q3', sub: '4/7', ans: '소인수분해', def: '어떤 자연수를 소인수의 곱으로 나타내는 것', clip: 'q3d', ask: `소인수분해일까?<br>거듭제곱일까?`, askClip: 'chk_q3', okClip: 'fb_ok_q1', ansClip: 'fb_ans_q1' });
   writeQ({ id: 'q3b', sub: '5/7', ans: '거듭제곱', def: '같은 수를 여러 번 곱하는 것', clip: 'q3e', ask: `소인수분해일까?<br>거듭제곱일까?`, askClip: 'chk_q3b', okClip: 'fb_ok_q3b', ansClip: 'fb_ans_q3b' });
   /* v7: 활용 연습 — 읽기 빈칸 문제를 바꿈(11/24 샘플). 디자인이 앞과 달라져 교실·교과서 장면이 나온다. 보기 두 개 */
-  blankQ({ id: 'q4a', sub: '6/7', scene: 'chalk', instr: ['칠판을 보고 빈칸에 알맞은 낱말을 골라 보세요.', 'i_app1'], before: '5 × 5 × 5를', after: '으로 나타냈구나.', fs: 34, words: ['소인수분해', '거듭제곱'], right: '거듭제곱', full: ['q4a'], lead: '5를 세 번 곱한 것을 간단히 나타냈어.', leadClip: 'kl_q4a' });
-  blankQ({ id: 'q4b', sub: '7/7', scene: 'book', instr: ['교과서를 보고 빈칸에 알맞은 낱말을 골라 보세요.', 'i_app2'], before: '다음 수를', after: '하시오.', words: ['거듭제곱', '소인수분해'], right: '소인수분해', full: ['q4b'] });
+  blankQ({ id: 'q4a', sub: '6/7', scene: 'chalk', instr: ['보기에서 알맞은 낱말을 골라 빈칸에 넣어 보세요.', 'i_app1'], before: '5 × 5 × 5를', after: '으로 나타냈구나.', fs: 34, words: ['소인수분해', '거듭제곱'], right: '거듭제곱', full: ['q4a'], lead: '5를 세 번 곱한 것을 간단히 나타냈어.', leadClip: 'kl_q4a' });
+  blankQ({ id: 'q4b', sub: '7/7', scene: 'book', instr: ['보기에서 알맞은 낱말을 골라 빈칸에 넣어 보세요.', 'i_app2'], before: '다음 수를', after: '하시오.', words: ['소인수분해', '거듭제곱'], right: '소인수분해', full: ['q4b'] });
 
 
   /* ---------- 6. 정리와 활용 — v6-3: 필수어휘가 2개라 한 쪽에 한 낱말씩(11/3 김수철 교수님 의견) */
